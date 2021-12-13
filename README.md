@@ -4,7 +4,7 @@
 
 
 
-#Images 
+# Images 
 
 ![1](https://user-images.githubusercontent.com/30321729/145736816-33fa7ca4-7e9c-4299-9ea2-dbfe0acc78ab.png)
 
@@ -20,7 +20,7 @@
 
 
 
-#Usage
+# Usage
 
 1. Download the repo 
 2. Start listening to music on Spotify
