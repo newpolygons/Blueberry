@@ -25,7 +25,8 @@
 1. Download the repo 
 2. Start listening to music on Spotify
 3. Enter your spotify credentials in the txt file
-4. Run the main.py file
-5. Log in if web page comes up
-6. Copy link of web page after signing in and paste into teminal
-7. Profit?
+4. Run commands in requirments.txt or setup the virtual enviroment
+5. Run the main.py file
+6. Log in if web page comes up
+7. Copy link of web page after signing in and paste into teminal
+8. Profit?
