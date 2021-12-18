@@ -68,10 +68,14 @@ def get_song_id():
         get_song_id()
     except TypeError:
         print("Spotify Error: make sure valid song is playing")
-        exit()
+        print("Waiting for valid song to be played.")
+        t.sleep(5)
+        get_song_id()
     except ValueError:
         print("Error: looks like no song is playing")
-        exit()
+        print("Waiting for song to be played.")
+        t.sleep(5)
+        get_song_id()
 
 
 

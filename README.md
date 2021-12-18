@@ -30,3 +30,4 @@
 6. Log in if web page comes up
 7. Copy link of web page after signing in and paste into teminal
 8. Profit?
+
