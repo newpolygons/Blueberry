@@ -19,13 +19,14 @@
 ## Usage
 
 1. Download the repo
-2. Start listening to music on Spotify
-3. Create and fill 'creds.txt' in the main directory (more info below)
-4. Run commands in requirments.txt
-5. Run src/main.py file
-6. Log in if web page comes up
-7. Copy link of web page after signing in and paste into teminal
-8. Enjoy!
+2. Run `pip install -r requirements.txt` in terminal to install dependencies
+3. Start listening to music on Spotify
+4. Create and fill 'creds.txt' in the main directory (more info below)
+5. Run commands in requirments.txt
+6. Run src/main.py file
+7. Log in if web page comes up
+8. Copy link of web page after signing in and paste into teminal
+9. Enjoy!
 
 ### creds.txt
 
