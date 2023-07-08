@@ -1,5 +1,0 @@
-#Enter Spotify details  (no quotes)
-client_id = your_magic_client_id
-client_secret = your_magic_client_secret
-spot_username = your_magic_username
-display_size = your_magic_display_size (es. 1280x720)
