@@ -2,8 +2,9 @@ from types import ClassMethodDescriptorType
 import requests, colorgram, os, platform
 import time as t
 import spotipy.util as util
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image, ImageDraw, ImageFont, ImageFilter
 from spotipy.oauth2 import SpotifyOAuth
+import random
 
 # Get creds please enter your creds in creds.txt
 
@@ -163,10 +164,8 @@ def albumImage():
 
     myFont = ImageFont.truetype("./fonts/Rubik.ttf", 40)
     titleArtist.text((50,50), (songTitle + "\n" + songArtist), font = myFont, fill = (textColor[0],textColor[1],textColor[2]))
-    colorImageOne.save('ImageCache/firstColor.png')
 
     colorImageTwo = Image.new('RGB', (baseWidth, int(baseHeight / 2)), (colors[1].rgb))
-    colorImageTwo.save('ImageCache/secondColor.png')
 
 
     #Combine Images
@@ -174,14 +173,12 @@ def albumImage():
     background = Image.new('RGB', (colorImageOne.width, colorImageOne.height + colorImageTwo.height))
     background.paste(colorImageOne, (0, 0))
     background.paste(colorImageTwo, (0, colorImageOne.height))
-    background.save('ImageCache/background.png')
 
     
     finalImage = Image.new('RGB', (width, height))
     background.paste(image, ((int(background.width/2) - int(image.width / 2)), int((background.height/2) - int(image.height / 2))))
     background.save("ImageCache/finalImage.png")
 
-    return songTitle
 
 def getColors():
     #Setup Background Colors
@@ -240,8 +237,6 @@ def gradient():
     # create a draw object
     draw = ImageDraw.Draw(gradient)
 
-    # the gradient will be diagonal, and it will be drawn from the top left corner to the bottom right corner
-
     # the first color will be the first color of the album image
     firstColor = colors[0].rgb
     # the second color will be the second color of the album image
@@ -291,6 +286,53 @@ def gradient():
     background.paste(Image.open("ImageCache/text.png"), (0, 0), mask = Image.open("ImageCache/text.png"))
     background.save("ImageCache/finalImage.png")
 
+
+def blurred():
+    #this function will create a background image with the blurred album image, filling the whole screen, and the cover image in the center
+    try:
+        # Get the song information including title and artist
+        songInformation = get_song_id()
+        songTitle = songInformation[1]
+        songArtist = songInformation[2]
+    except:
+        return
+
+    # Setup Album Image
+    width = int(display[0]) // 5
+    height = int(display[1]) // 2
+
+    baseWidth = int(display[0])
+    baseHeight = int(display[1])
+
+    # Resize the album image to the width of the screen
+    image = Image.open("ImageCache/newCover.png")
+    wpercent = baseWidth / float(image.size[0])
+    hsize = int(float(image.size[1]) * wpercent)
+    resized_image = image.resize((baseWidth, hsize), Image.LANCZOS)
+
+    #center the image vertically
+    resized_image = resized_image.crop((0, int((resized_image.height / 2) - (baseHeight / 2)), baseWidth, int((resized_image.height / 2) + (baseHeight / 2))))
+
+    # Crop and blur the image
+    cropped_image = resized_image.crop((0, 0, baseWidth, baseHeight))
+    blurred_image = cropped_image.filter(ImageFilter.GaussianBlur(radius=20))
+
+    # Resize the blurred image to the height of the screen, then center it
+    wpercent = baseHeight / float(blurred_image.size[1])
+    wsize = int(float(blurred_image.size[0]) * wpercent)
+    final_image = blurred_image.resize((wsize, baseHeight), Image.LANCZOS)
+    final_image = final_image.crop((int((final_image.width / 2) - (baseWidth / 2)), 0, int((final_image.width / 2) + (baseWidth / 2)), baseHeight))
+
+    # open the cover image, resize it to 120% of the size, and paste it in the center of the blurred image
+    cover_image = Image.open("ImageCache/newCover.png")
+    wpercent = 1.2 * width / float(cover_image.size[0])
+    hsize = int(float(cover_image.size[1]) * wpercent)
+    cover_image = cover_image.resize((int(width * 1.2), hsize), Image.LANCZOS)
+    final_image.paste(cover_image, ((int(final_image.width / 2) - int(cover_image.width / 2)), int((final_image.height / 2) - int(cover_image.height / 2))))
+
+    # save the final image
+    final_image.save("ImageCache/finalImage.png")
+
 if __name__ == "__main__":
 
     try:
@@ -307,11 +349,14 @@ if __name__ == "__main__":
                     f.write(songTitle)
                     f.close()
 
-                #choose randomly between the gradient and the album image
-                if (int(t.time()) % 2) == 0:
+                #choose randomly between the gradient, blurred, and album image, but the last one is chosen less often
+                if random.randint(0, 2) == 0:
                     gradient()
+                elif random.randint(0, 2) == 1:
+                    blurred()
                 else:
                     albumImage()
+                    
 
                 
                 
