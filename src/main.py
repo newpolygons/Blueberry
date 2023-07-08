@@ -4,7 +4,7 @@ import time as t
 import spotipy.util as util
 from PIL import Image, ImageDraw, ImageFont
 from spotipy.oauth2 import SpotifyOAuth
-import mac, linux
+import linux
 # Get creds please enter your creds in creds.txt
 
 global spotify_token, client_id, client_secret, username, display
@@ -17,8 +17,7 @@ display = ""
 counter = 0
 
 def main():
-    if (platform.system() == "Darwin"):
-        mac.backupWallpaper()
+
     datadict = get_variables()
     global client_secret, colors, client_id, username, display
     client_id = datadict["client_id"]
@@ -60,7 +59,7 @@ def get_song_id():
         artistName = song_content['item']['album']['artists'][0]['name']
         imageUrl = song_content['item']['album']['images'][1]['url']         
         imageRequest = requests.get(str(imageUrl))
-        file = open("../ImageCache/newCover.png", "wb")
+        file = open("ImageCache/newCover.png", "wb")
         file.write(imageRequest.content)
         file.close()
         return [id, name, artistName]
@@ -82,7 +81,7 @@ def get_song_id():
 
 def get_variables():
     dicti = {}
-    with open('../creds.txt', 'r') as file:
+    with open('creds.txt', 'r') as file:
         content = file.readlines()
         for line in content:
             if "=" in line:
@@ -108,23 +107,23 @@ def albumImage():
     
     baseWidth = int(display[0])
     baseHeight = int(display[1])
-    image = Image.open("../ImageCache/newCover.png")
+    image = Image.open("ImageCache/newCover.png")
     wpercent = (width/float(image.size[0]))
     hsize = int((float(image.size[1])*float(wpercent)))
     image = image.resize((width,hsize), Image.LANCZOS)
-    image.save('../ImageCache/albumImage.png')
+    image.save('ImageCache/albumImage.png')
 
     colors = getColors()
 
     colorImageOne = Image.new('RGB', (baseWidth, int(baseHeight / 2)), (colors[0].rgb))
     titleArtist = ImageDraw.Draw(colorImageOne)
 
-    myFont = ImageFont.truetype("../fonts/Rubik.ttf", 40)
+    myFont = ImageFont.truetype("fonts/Rubik.ttf", 40)
     titleArtist.text((50,50), (songTitle + "\n" + songArtist), font = myFont, fill = (255,255,255))
-    colorImageOne.save('../ImageCache/firstColor.png')
+    colorImageOne.save('ImageCache/firstColor.png')
 
     colorImageTwo = Image.new('RGB', (baseWidth, int(baseHeight / 2)), (colors[1].rgb))
-    colorImageTwo.save('../ImageCache/secondColor.png')
+    colorImageTwo.save('ImageCache/secondColor.png')
 
 
     #Combine Images
@@ -132,18 +131,18 @@ def albumImage():
     background = Image.new('RGB', (colorImageOne.width, colorImageOne.height + colorImageTwo.height))
     background.paste(colorImageOne, (0, 0))
     background.paste(colorImageTwo, (0, colorImageOne.height))
-    background.save('../ImageCache/background.png')
+    background.save('ImageCache/background.png')
 
     
     finalImage = Image.new('RGB', (width, height))
     background.paste(image, ((int(background.width/2) - int(image.width / 2)), int((background.height/2) - int(image.height / 2))))
-    background.save("../ImageCache/finalImage.png")
+    background.save("ImageCache/finalImage.png")
 
     return songTitle
 
 def getColors():
     #Setup Background Colors
-    colors = colorgram.extract('../ImageCache/albumImage.png', 2)
+    colors = colorgram.extract('ImageCache/albumImage.png', 2)
     if len(colors) < 2:
         firstColor = colors[0]
         secondColor = colors[0]
@@ -154,7 +153,7 @@ def getColors():
     return([firstColor, secondColor])
 
 def checkSong():
-    f = open("songCheck.txt", "r")
+    f = open("src/songCheck.txt", "r")
     song = f.read()
     f.close()
     return song
@@ -167,13 +166,11 @@ while 1:
     songTitle = albumImage()
 
     if songTitle != checkSong():
-        f = open("songCheck.txt", "w")
+        f = open("src/songCheck.txt", "w")
         f.write(songTitle)
         f.close()
-        if (platform.system() == 'Linux'):
-            linux.applyWallpaperLinux()
-        elif (platform.system() == 'Darwin'):
-            mac.applyWallpaperMac()
+        linux.applyWallpaperLinux()
+
         
 
     counter = counter + 1

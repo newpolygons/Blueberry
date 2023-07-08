@@ -1,4 +1,3 @@
-pip3 install colorgram.py
-pip3 install spotipy
-pip3 install pillow
-pip3 install appscript
+colorgram.py
+spotipy
+pillow

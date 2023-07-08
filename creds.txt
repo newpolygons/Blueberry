@@ -1,5 +1,5 @@
 #Enter Spotify details  (no quotes)
-client_id = 67fabcdf612d468ea3253a697e4ddda8
-client_secret = e767a34d0caf47c4b994bb16be9723fb
-spot_username = acoccagnaman
-display_size = 2560x1440
+client_id = your_magic_client_id
+client_secret = your_magic_client_secret
+spot_username = your_magic_username
+display_size = your_magic_display_size (es. 1280x720)
