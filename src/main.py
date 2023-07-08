@@ -4,7 +4,7 @@ import time as t
 import spotipy.util as util
 from PIL import Image, ImageDraw, ImageFont
 from spotipy.oauth2 import SpotifyOAuth
-import linux
+
 # Get creds please enter your creds in creds.txt
 
 global spotify_token, client_id, client_secret, username, display, original_wallpaper, command, mode
@@ -158,9 +158,6 @@ def albumImage():
     else:
         textColor = (int(255), int(255), int(255))
      
-
-    colors = getColors()
-
     colorImageOne = Image.new('RGB', (baseWidth, int(baseHeight / 2)), (colors[0].rgb))
     titleArtist = ImageDraw.Draw(colorImageOne)
 
@@ -204,6 +201,96 @@ def checkSong():
     f.close()
     return song
 
+
+def gradient():
+
+    try:
+        # Get the song information including title and artist
+        songInformation = get_song_id()
+        songTitle = songInformation[1]
+        songArtist = songInformation[2]
+    except:
+        return
+
+    # Setup Album Image
+    width = int(int(display[0]) / 5)
+    height = int(int(display[1]) / 2)
+    
+    baseWidth = int(display[0])
+    baseHeight = int(display[1])
+    image = Image.open("ImageCache/newCover.png")
+    wpercent = (width/float(image.size[0]))
+    hsize = int((float(image.size[1])*float(wpercent)))
+    image = image.resize((width,hsize), Image.LANCZOS)
+    image.save('ImageCache/albumImage.png')
+    
+    # Get the colors of the album image
+    colors = getColors()
+
+    # Create a gradient image with the colors of the album image
+
+    # use the dimensions of the display
+
+    width = int(display[0])
+    height = int(display[1])
+
+    # create a new image with the dimensions of the display
+    gradient = Image.new('RGB', (width, height))
+
+    # create a draw object
+    draw = ImageDraw.Draw(gradient)
+
+    # the gradient will be diagonal, and it will be drawn from the top left corner to the bottom right corner
+
+    # the first color will be the first color of the album image
+    firstColor = colors[0].rgb
+    # the second color will be the second color of the album image
+    secondColor = colors[1].rgb
+
+    # draw the gradient
+    for i in range(height):
+        draw.line((0, i, width, i), fill = (int(firstColor[0] + (secondColor[0] - firstColor[0]) * i / height), int(firstColor[1] + (secondColor[1] - firstColor[1]) * i / height), int(firstColor[2] + (secondColor[2] - firstColor[2]) * i / height)))
+
+    # save the gradient image
+    gradient.save('ImageCache/gradient.png')
+
+    #generate the text image
+    
+    # Setup Text: check if the first color is too light or too dark
+    textColor = colors[0].rgb
+
+    #if the color is too light, make the text black, otherwise make it white
+    if (textColor[0]*0.299 + textColor[1]*0.587 + textColor[2]*0.114) > 186:
+        textColor = (int(0), int(0), int(0))
+    else:
+        textColor = (int(255), int(255), int(255))
+
+    #create a new image with the name of the song and the artist, and transparent background
+    text = Image.new('RGBA', (width, height), (0, 0, 0, 0))
+    #create a draw object
+    draw = ImageDraw.Draw(text)
+    #set the font
+    myFont = ImageFont.truetype("./fonts/Rubik.ttf", 40)
+    #draw the text
+    draw.text((50,50), (songTitle + "\n" + songArtist), font = myFont, fill = (textColor[0],textColor[1],textColor[2]))
+    #save the text image
+    text.save('ImageCache/text.png')
+
+
+
+    # paste the album image, bigger of 120% of the size, in the center of the gradient image
+    gradient.paste(image, ((int(gradient.width/2) - int(image.width / 2)), int((gradient.height/2) - int(image.height / 2))))
+    # save the image
+    gradient.save("ImageCache/finalImage.png")
+
+    
+
+    # paste the text image in a layer on top of the background image
+    background = Image.new('RGB', (width, height))
+    background.paste(Image.open("ImageCache/finalImage.png"), (0, 0))
+    background.paste(Image.open("ImageCache/text.png"), (0, 0), mask = Image.open("ImageCache/text.png"))
+    background.save("ImageCache/finalImage.png")
+
 if __name__ == "__main__":
 
     try:
@@ -220,8 +307,13 @@ if __name__ == "__main__":
                     f.write(songTitle)
                     f.close()
 
-                #generate and change the wallpaper
-                albumImage()
+                #choose randomly between the gradient and the album image
+                if (int(t.time()) % 2) == 0:
+                    gradient()
+                else:
+                    albumImage()
+
+                
                 
                 os.system(command + os.getcwd() + "/ImageCache/finalImage.png")
 
