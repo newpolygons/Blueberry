@@ -1,4 +1,0 @@
-aem
-appscript
-mactypes
-osax
