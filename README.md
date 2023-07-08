@@ -1,4 +1,4 @@
-# Blueberry
+# SpotifySyncWall
 
  Currently Playing Spotify Song As Wallpaper for Gnome Desktop
 
@@ -6,15 +6,13 @@
 
 ## Images
 
-![1](https://user-images.githubusercontent.com/30321729/145736816-33fa7ca4-7e9c-4299-9ea2-dbfe0acc78ab.png)
+There are 3 modes: Album Cover, Gradient and Blurred. If you want to use only one of them, you can comment the other two in `main.py`, on `__main__`function.
 
-![2](https://user-images.githubusercontent.com/30321729/145736819-589ab479-38f9-4b61-9be9-61a02567dab4.png)
+![Album Cover mode](src/img/AlbumCover.png)
 
-![3](https://user-images.githubusercontent.com/30321729/145736824-894d5452-89af-444f-b3f6-53925f9b4dce.png)
+![Gradient mode](src/img/gradient.png)
 
-![4](https://user-images.githubusercontent.com/30321729/145736827-44439bc5-7ecc-4113-beda-442b0f210639.png)
-
-![5](https://user-images.githubusercontent.com/30321729/145736829-f9a9aaed-2c9f-41aa-b490-2e77ee76b114.png)
+![Blurred mode](src/img/blurred.png)
 
 ## Usage
 
@@ -24,7 +22,7 @@
 4. Create and fill 'creds.txt' in the main directory (more info below)
 5. Run src/main.py file
 6. Log in if web page comes up
-7. Copy link of web page after signing in and paste into teminal
+7. Copy link of web page after signing in and paste into terminal
 8. Enjoy!
 
 ### creds.txt

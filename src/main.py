@@ -356,6 +356,8 @@ if __name__ == "__main__":
                     blurred()
                 else:
                     albumImage()
+                #if you want to use only one of the three functions, comment the other two
+                
                     
 
                 
