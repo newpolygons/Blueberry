@@ -142,7 +142,7 @@ def albumImage():
     
     baseWidth = int(display[0])
     baseHeight = int(display[1])
-    image = Image.open("ImageCache/newCover.png")
+    image = Image.open("ImageCache/albumImage.png")
     wpercent = (width/float(image.size[0]))
     hsize = int((float(image.size[1])*float(wpercent)))
     image = image.resize((width,hsize), Image.LANCZOS)
@@ -229,7 +229,7 @@ def gradient():
     
     baseWidth = int(display[0])
     baseHeight = int(display[1])
-    image = Image.open("ImageCache/newCover.png")
+    image = Image.open("ImageCache/albumImage.png")
     wpercent = (width/float(image.size[0]))
     hsize = int((float(image.size[1])*float(wpercent)))
     image = image.resize((width,hsize), Image.LANCZOS)
@@ -319,7 +319,7 @@ def blurred():
     baseHeight = int(display[1])
 
     # Resize the album image to the width of the screen
-    image = Image.open("ImageCache/newCover.png")
+    image = Image.open("ImageCache/albumImage.png")
     wpercent = baseWidth / float(image.size[0])
     hsize = int(float(image.size[1]) * wpercent)
     resized_image = image.resize((baseWidth, hsize), Image.LANCZOS)
@@ -338,7 +338,7 @@ def blurred():
     final_image = final_image.crop((int((final_image.width / 2) - (baseWidth / 2)), 0, int((final_image.width / 2) + (baseWidth / 2)), baseHeight))
 
     # open the cover image, resize it to 120% of the size, and paste it in the center of the blurred image
-    cover_image = Image.open("ImageCache/newCover.png")
+    cover_image = Image.open("ImageCache/albumImage.png")
     wpercent = 1.2 * width / float(cover_image.size[0])
     hsize = int(float(cover_image.size[1]) * wpercent)
     cover_image = cover_image.resize((int(width * 1.2), hsize), Image.LANCZOS)
