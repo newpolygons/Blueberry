@@ -389,8 +389,6 @@ def waveform():
     with open('track.json') as f:
         data = json.load(f)
 
-    print('ok json')
-
     duration = data['track']['duration']
 
     #map the the segments data to only include the start, duration ad loudness properties
