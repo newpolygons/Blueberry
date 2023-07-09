@@ -4,7 +4,7 @@ import time as t
 import spotipy.util as util
 from PIL import Image, ImageDraw, ImageFont, ImageFilter
 from spotipy.oauth2 import SpotifyOAuth
-import random
+import random, json
 
 # Get creds please enter your creds in creds.txt
 
@@ -86,7 +86,7 @@ def get_song_id():
         artistName = song_content['item']['album']['artists'][0]['name']
         imageUrl = song_content['item']['album']['images'][1]['url']
         imageRequest = requests.get(str(imageUrl))
-        file = open("ImageCache/newCover.png", "wb")
+        file = open("ImageCache/albumImage.png", "wb")
         file.write(imageRequest.content)
         file.close()
 
@@ -189,8 +189,22 @@ def getColors():
     else:
         firstColor = colors[0]
         secondColor = colors[1]
+
+    #check if colors are too similar
+    if abs(firstColor.rgb[0] - secondColor.rgb[0]) < 10 and abs(firstColor.rgb[1] - secondColor.rgb[1]) < 10 and abs(firstColor.rgb[2] - secondColor.rgb[2]) < 10:
+        secondColor = getThirdColor()
     
     return([firstColor, secondColor])
+
+def getThirdColor():
+    #Setup Background Colors
+    colors = colorgram.extract('ImageCache/albumImage.png', 3)
+    if len(colors) < 3:
+        thirdColor = colors[0]
+    else:
+        thirdColor = colors[2]
+    
+    return(thirdColor)
 
 def checkSong():
     f = open("src/songCheck.txt", "r")
@@ -333,6 +347,151 @@ def blurred():
     # save the final image
     final_image.save("ImageCache/finalImage.png")
 
+
+def get_audio_analysis(song_id):
+    url = f"https://api.spotify.com/v1/audio-analysis/{song_id}"
+    headers = {
+        "Accept": "application/json",
+        "Content-Type": "application/json",
+        "Authorization": f"Bearer {spotify_token}"
+    }
+    response = requests.get(url, headers=headers)
+    if response.status_code == 200:
+        with open('track.json', 'wb') as file:
+            file.write(response.content)
+    else:
+        print("Error during request")
+
+
+def waveform():
+    #generate the waveform image, using the track ID and colors of the album image
+    try:
+        # Get the song information including title and artist
+        songInformation = get_song_id()
+        songTitle = songInformation[1]
+        songArtist = songInformation[2]
+        songID = songInformation[0]
+    except:
+        return
+
+    width = int(display[0]) // 5
+    height = int(display[1]) // 2
+
+    baseWidth = int(display[0])
+    baseHeight = int(display[1])
+
+
+    get_audio_analysis(songID)
+
+    #What I want to do is greatly simplify this data to only include an array of loudness levels from 0 to 1. I’ll then use this array of levels to generate a waveform
+
+    #open the json file
+    with open('track.json') as f:
+        data = json.load(f)
+
+    print('ok json')
+
+    duration = data['track']['duration']
+
+    #map the the segments data to only include the start, duration ad loudness properties
+    segments = lambda data, duration: [{
+    'start': segment['start'] / duration,
+    'duration': segment['duration'] / duration,
+    'loudness': 1 - (min(max(segment['loudness_max'], -35), 0) / -35)
+    } for segment in data['segments']]
+
+
+    #find the maximum loudness
+    max_loudness = max([segment['loudness'] for segment in segments(data, duration)])
+
+    #find the minimum loudness
+    min_loudness = min([segment['loudness'] for segment in segments(data, duration)])
+
+    #get the colors of the album image
+    colors = getColors()
+
+    levels = []
+    i = 0
+    while i < 100:
+        s = 0
+        for segment in segments(data, duration):
+            if segment['start'] < i / 100 < segment['start'] + segment['duration']:
+                s += segment['loudness']
+        #if a level is too high or too low, set it to the mean of the previous and the next level
+        levels.append((s / max_loudness) / 2)
+        i += 1    
+
+    #if a level is too low, set it to the mean of the previous and the next level
+    for i in range(99):
+        if levels[i] < 0.5 and levels[i + 1] < 0.5 and levels[i -1] < 0.5:
+            levels[i] = (levels[i - 1] + levels[i + 1]) / 2
+
+    #if a level is too high, set it to the mean of the previous and the next level
+    for i in range(99):
+        if levels[i] > 0.33 and levels[i + 1] > 0.33 and levels[i -1 ] > 0.33:
+            levels[i] = (levels[i - 1] + levels[i + 1]) / 2
+
+
+    
+    #create a new image with the dimensions of the display
+    width = int(display[0])
+    height = int(display[1])
+    image = Image.new('RGB', (width, height), colors[0].rgb)
+
+
+    #create the schema for the waveform
+    schema = []
+
+    invertedSchema = []
+
+    for i in range(100):
+        schema.append((int(i / 100 * width), int((1 - levels[i]) * height)))
+
+    #invert the schema by x-axis
+    for i in range(100):
+        invertedSchema.append((int(i / 100 * width), int(levels[i] * height)))
+
+    #normalize the schema to the height of the screen
+    for i in range(100):
+        schema[i] = (schema[i][0], int(schema[i][1] * (baseHeight / height)))
+        invertedSchema[i] = (invertedSchema[i][0], int(invertedSchema[i][1] * (baseHeight / height)))
+
+    
+    #create a draw object
+    draw = ImageDraw.Draw(image)
+
+    #draw a single line that starts from the y coordinate of the first point of the schema, and ends at the y coordinate of the point of the inverted schema with the same x coordinate
+
+    for i in range(100):
+        draw.line((schema[i][0], schema[i][1], invertedSchema[i][0], invertedSchema[i][1]), fill = colors[1].rgb, width = 15, joint = 'curve')
+
+    #resize the image to 60% of the size, both horizontally and vertically
+    image = image.resize((int(width * 0.6), int(height * 0.6)), Image.LANCZOS)
+
+    #tmp will be the final image, with the background color of the first color of the album image
+    tmp = Image.new('RGB', (width, height), colors[0].rgb)
+
+    #paste the waveform image in the center of the background image, centered vertically and horizontally
+    tmp.paste(image, ((int(tmp.width/2) - int(image.width / 2)), int((tmp.height/2) - int(image.height / 2))))
+
+    #TEXT
+    #create a new image with the name of the song and the artist, and color of the first color of the album image as background
+    text = Image.new('RGBA', (width, height), (colors[0].rgb))
+    #create a draw object
+    draw = ImageDraw.Draw(text)
+    #set the font
+    myFont = ImageFont.truetype("./fonts/Rubik.ttf", 40)
+    #draw the text
+    draw.text((50,50), (songTitle + "\n" + songArtist), font = myFont, fill = (colors[1].rgb))
+    #save the text image
+    text.save('ImageCache/text.png')
+    
+    #paste the text image vertically centered and lower than the waveform image
+    tmp.paste(Image.open("ImageCache/text.png"), ((int(tmp.width/2) - int(Image.open("ImageCache/text.png").width / 2), int((tmp.height/2) + int(image.height / 2))))    )
+
+    #save the image
+    tmp.save("ImageCache/finalImage.png")
+
 if __name__ == "__main__":
 
     try:
@@ -349,19 +508,19 @@ if __name__ == "__main__":
                     f.write(songTitle)
                     f.close()
 
-                #choose randomly between the gradient, blurred, and album image, but the last one is chosen less often
-                if random.randint(0, 2) == 0:
+                #choose randomly between tthe different modes, and generate the wallpaper
+                mode = random.choice(["gradient", "blurred", "waveform", "albumImage"])
+                
+                if mode == "gradient":
                     gradient()
-                elif random.randint(0, 2) == 1:
+                elif mode == "blurred":
                     blurred()
-                else:
+                elif mode == "waveform":
+                    waveform()
+                elif mode == "albumImage":
                     albumImage()
-                #if you want to use only one of the three functions, comment the other two
-                
-                    
 
-                
-                
+                #change the wallpaper                           
                 os.system(command + os.getcwd() + "/ImageCache/finalImage.png")
 
             t.sleep(5)

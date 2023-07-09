@@ -6,13 +6,15 @@
 
 ## Images
 
-There are 3 modes: Album Cover, Gradient and Blurred. If you want to use only one of them, you can comment the other two in `main.py`, on `__main__`function.
+There are 4 modes: Album Cover, Gradient, Blurred and Waveform. If you want to use only one of them, you can comment the others in `main.py`, on `__main__`function.
 
 ![Album Cover mode](src/img/AlbumCover.png)
 
 ![Gradient mode](src/img/gradient.png)
 
 ![Blurred mode](src/img/blurred.png)
+
+![Waveform mode](src/img/Waveform.png)
 
 ## Usage
 
@@ -47,3 +49,22 @@ display_size = your_display_size (ex. 1920x1080)
 7. Write your Spotify username in the 'creds.txt' file
 8. Copy your display size (ex. 1920x1080) and paste it in the 'creds.txt' file (you can find it in Settings -> Devices -> Display Resolution or running the command `xrandr` in terminal)
 9. Save the file
+
+## TODO
+
+### Short term
+
+- [ ] Find a better way to check if colors are too similar
+- [ ] Function that choose which color use as second one in each mode, based on some magic *distance* between colors
+- [ ] Find a better way to leveling levels of loudness in waveform mode, so peaks are not too high compared to the rest of the image
+
+### Medium term
+
+- [ ] Add new modes
+- [ ] Let user choose some parameters (ex. colors, gradient direction, etc.) without editing the code or stop the script
+
+### Long term
+
+- [ ] General optimization of the code
+- [ ] Add a GUI (too far from now, I think)
+- [ ] Compatibility with other desktop environments (same as above)
