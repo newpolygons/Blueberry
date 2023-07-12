@@ -84,10 +84,6 @@ def get_song_id():
 
         name = song_content['item']['name']
 
-        if type(name) == NoneType:
-            t.sleep(2)
-            get_song_id()
-            
         artistName = song_content['item']['album']['artists'][0]['name']
         imageUrl = song_content['item']['album']['images'][1]['url']
         imageRequest = requests.get(str(imageUrl))
