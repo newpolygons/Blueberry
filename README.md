@@ -44,7 +44,7 @@ display_size = your_display_size (ex. 1920x1080)
 2. Log in with your Spotify account
 3. Select 'Create an app'
 4. Choose a name and description for your app, then click 'Create'
-5. Click con 'Edit Settings' and set '<https://google.com/>' as new redirect URI, then Save
+5. Click con 'Edit Settings' and set '<https://www.google.com/>' as new redirect URI, then Save
 6. In the app page, copy the Client ID and Client Secret and paste them in the 'creds.txt' file
 7. Write your Spotify username in the 'creds.txt' file
 8. Copy your display size (ex. 1920x1080) and paste it in the 'creds.txt' file (you can find it in Settings -> Devices -> Display Resolution or running the command `xrandr` in terminal)
