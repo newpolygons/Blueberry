@@ -1,3 +1,4 @@
 colorgram.py
 spotipy
 pillow
+cachetools

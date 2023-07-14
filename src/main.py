@@ -5,6 +5,7 @@ import spotipy.util as util
 from PIL import Image, ImageDraw, ImageFont, ImageFilter
 from spotipy.oauth2 import SpotifyOAuth
 import random, json
+from cachetools import TTLCache
 
 # Get creds please enter your creds in creds.txt
 
@@ -15,6 +16,10 @@ spotify_token = ""
 username = ""
 scope = "user-read-currently-playing"
 display = ""
+cacheOn = True
+#delete the previous line if you don't want to use the cache
+
+cache = TTLCache(maxsize=100, ttl=3600)
 
 
 #check if gnome is in dark mode or light mode
@@ -27,15 +32,28 @@ command = 'gsettings set org.gnome.desktop.background picture-uri ' if mode == '
 original_wallpaper = os.popen("gsettings get org.gnome.desktop.background picture-uri-dark").read()
 
 
-def init():
+def  init():
     # Get variables from the credentials file
     datadict = get_variables()
+
+
+
+    #delete the previous line if you don't want to use the cache
+
 
     #check if 'src/songCheck.txt' exists, if not create it
     if not os.path.exists("src/songCheck.txt"):
         f = open("src/songCheck.txt", "w")
         f.write("")
         f.close()
+
+    #check if 'ImageCache' directory exists, if not create it
+    if not os.path.exists("ImageCache"):
+        os.mkdir("ImageCache")
+
+    #check if 'ImageCache/cache' directory exists, if not create it
+    if not os.path.exists("ImageCache/cache") and cacheOn:
+        os.mkdir("ImageCache/cache")
 
     # Declare global variables to be used in other functions
     global client_secret, colors, client_id, username, display
@@ -67,6 +85,8 @@ def spotify_authenticate():
 
 
 def get_song_id():
+    global cacheOn
+
     # Get the ID, name, artist, and image URL of the currently playing song from Spotify API
     header = {
         "Authorization": "Bearer {}".format(spotify_token)
@@ -86,10 +106,26 @@ def get_song_id():
 
         artistName = song_content['item']['album']['artists'][0]['name']
         imageUrl = song_content['item']['album']['images'][1]['url']
-        imageRequest = requests.get(str(imageUrl))
-        file = open("ImageCache/albumImage.png", "wb")
-        file.write(imageRequest.content)
-        file.close()
+
+        if not name or not artistName or not imageUrl:
+            t.sleep(2)
+            get_song_id()
+
+
+        # if the image is already in the cache, let it be the new 'ImageCache/albumImage.png'
+        if os.path.exists("ImageCache/cache/" + id + ".png") and cacheOn:
+            file = open("ImageCache/albumImage.png", "wb")
+            file.write(open("ImageCache/cache/" + id + ".png", "rb").read())
+            file.close()
+        else:
+            imageRequest = requests.get(str(imageUrl))
+            file = open("ImageCache/albumImage.png", "wb")
+            file.write(imageRequest.content)
+            file.close()
+            if cacheOn:
+                file = open("ImageCache/cache/" + id + ".png", "wb")
+                file.write(imageRequest.content)
+                file.close()
 
         return [id, name, artistName]
     except KeyError:
