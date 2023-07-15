@@ -169,7 +169,6 @@ def get_song_name():
     if not name:
         t.sleep(2)
         get_song_name()
-    print(name)
     return name
 
 
