@@ -17,7 +17,7 @@ username = ""
 scope = "user-read-currently-playing"
 display = ""
 cacheOn = True
-#delete the previous line if you don't want to use the cache
+#set 'cacheOn = False' in the previous line if you don't want to use cache
 
 cache = TTLCache(maxsize=100, ttl=3600)
 
@@ -36,11 +36,6 @@ def  init():
     # Get variables from the credentials file
     datadict = get_variables()
 
-
-
-    #delete the previous line if you don't want to use the cache
-
-
     #check if 'src/songCheck.txt' exists, if not create it
     if not os.path.exists("src/songCheck.txt"):
         f = open("src/songCheck.txt", "w")
@@ -50,10 +45,6 @@ def  init():
     #check if 'ImageCache' directory exists, if not create it
     if not os.path.exists("ImageCache"):
         os.mkdir("ImageCache")
-
-    #check if 'ImageCache/cache' directory exists, if not create it
-    if not os.path.exists("ImageCache/cache") and cacheOn:
-        os.mkdir("ImageCache/cache")
 
     # Declare global variables to be used in other functions
     global client_secret, colors, client_id, username, display
@@ -111,21 +102,20 @@ def get_song_id():
             t.sleep(2)
             get_song_id()
 
-
-        # if the image is already in the cache, let it be the new 'ImageCache/albumImage.png'
-        if os.path.exists("ImageCache/cache/" + id + ".png") and cacheOn:
-            file = open("ImageCache/albumImage.png", "wb")
-            file.write(open("ImageCache/cache/" + id + ".png", "rb").read())
-            file.close()
+        #save the id of the album which contains the song
+        albumID = song_content['item']['album']['id']
+        # save the image of the song using the album ID as ID, so songs from the same album will have the same image
+        if albumID not in cache and cacheOn:
+            cache[albumID] = imageUrl
+            image = requests.get(imageUrl)
+            with open('ImageCache/albumImage.png', 'wb') as file:
+                file.write(image.content)
         else:
-            imageRequest = requests.get(str(imageUrl))
-            file = open("ImageCache/albumImage.png", "wb")
-            file.write(imageRequest.content)
-            file.close()
-            if cacheOn:
-                file = open("ImageCache/cache/" + id + ".png", "wb")
-                file.write(imageRequest.content)
-                file.close()
+            image = requests.get(cache[albumID])
+            
+            with open('ImageCache/albumImage.png', 'wb') as file:
+                file.write(image.content)
+
 
         return [id, name, artistName]
     except KeyError:
@@ -161,8 +151,29 @@ def get_variables():
 
 def get_song_name():
     # Get the name of the currently playing song
-    songInformation = get_song_id()
-    return songInformation[1]
+    header = {
+        "Authorization": "Bearer {}".format(spotify_token)
+    }
+    get_id = requests.get("https://api.spotify.com/v1/me/player/currently-playing", headers=header)
+
+    song_content = get_id.json()
+    
+    id = song_content['item']['id']
+    # If the ID is not available, wait for 2 seconds and retry getting the song ID
+    if not id:
+        t.sleep(2)
+        get_song_id()
+    name = song_content['item']['name']
+    artistName = song_content['item']['album']['artists'][0]['name']
+    imageUrl = song_content['item']['album']['images'][1]['url']
+    if not name:
+        t.sleep(2)
+        get_song_name()
+    print(name)
+    return name
+
+
+
 
 def albumImage():
     try:
@@ -346,6 +357,10 @@ def blurred():
         songTitle = songInformation[1]
         songArtist = songInformation[2]
     except:
+        #clean the text file
+        with open("src/songCheck.txt", "w") as f:
+            f.write("")
+            f.close()
         return
 
     # Setup Album Image
