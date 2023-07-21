@@ -1,0 +1,26 @@
+-- 1.00 (Current Version)
+
+- Implemented rounded corners on album image
+- Fix for better title and artist visibility (may be updated in future release)
+
+
+TODO: 
+Python GUI
+Gradient / Blur Modes (genricoloni )
+Better Spotify Authentication
+Complete MacOS Support
+Automatically Gets Display Size (higher album art resolution)
+Multiple Monitor Support
+Code Optimization / Bug Fixes
+
+
+
+
+
+
+
+
+--0.1
+
+- Initial MacOS support
+- Initial Application

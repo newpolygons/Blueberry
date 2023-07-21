@@ -112,15 +112,17 @@ def albumImage():
     wpercent = (width/float(image.size[0]))
     hsize = int((float(image.size[1])*float(wpercent)))
     image = image.resize((width,hsize), Image.LANCZOS)
-    image.save('../ImageCache/albumImage.png')
-
+    #Adding rounded corners and drop shadow to images
+    
+    image = add_corners(image, 20)
+    image.save('../ImageCache/newCover.png')
     colors = getColors()
 
     colorImageOne = Image.new('RGB', (baseWidth, int(baseHeight / 2)), (colors[0].rgb))
     titleArtist = ImageDraw.Draw(colorImageOne)
 
     myFont = ImageFont.truetype("../fonts/Rubik.ttf", 40)
-    titleArtist.text((50,50), (songTitle + "\n" + songArtist), font = myFont, fill = (255,255,255))
+    titleArtist.text((50,50), (songTitle + "\n" + songArtist), font = myFont, fill = (colors[1].rgb), stroke_width= 1 , stroke_fill=(211,211,211))
     colorImageOne.save('../ImageCache/firstColor.png')
 
     colorImageTwo = Image.new('RGB', (baseWidth, int(baseHeight / 2)), (colors[1].rgb))
@@ -135,15 +137,16 @@ def albumImage():
     background.save('../ImageCache/background.png')
 
     
+    
     finalImage = Image.new('RGB', (width, height))
-    background.paste(image, ((int(background.width/2) - int(image.width / 2)), int((background.height/2) - int(image.height / 2))))
+    background.paste(image, ((int(background.width/2) - int(image.width / 2)), int((background.height/2) - int(image.height / 2))), image)
     background.save("../ImageCache/finalImage.png")
 
     return songTitle
 
 def getColors():
     #Setup Background Colors
-    colors = colorgram.extract('../ImageCache/albumImage.png', 2)
+    colors = colorgram.extract('../ImageCache/newCover.png', 2)
     if len(colors) < 2:
         firstColor = colors[0]
         secondColor = colors[0]
@@ -158,6 +161,22 @@ def checkSong():
     song = f.read()
     f.close()
     return song
+
+def add_corners(im, rad):
+    circle = Image.new('L', (rad * 2, rad * 2), 0)
+    draw = ImageDraw.Draw(circle)
+    draw.ellipse((0, 0, rad * 2 - 1, rad * 2 - 1), fill=255)
+    alpha = Image.new('L', im.size, 255)
+    w, h = im.size
+    alpha.paste(circle.crop((0, 0, rad, rad)), (0, 0))
+    alpha.paste(circle.crop((0, rad, rad, rad * 2)), (0, h - rad))
+    alpha.paste(circle.crop((rad, 0, rad * 2, rad)), (w - rad, 0))
+    alpha.paste(circle.crop((rad, rad, rad * 2, rad * 2)), (w - rad, h - rad))
+    im.putalpha(alpha)
+    return im
+
+
+
 
 
 main()
