@@ -168,7 +168,6 @@ class object_property:
                     instance_methods.add(setterName)
 
                 else:
-
                     if self._ivar is NULL:
                         raise ValueError(
                             "Cannot create default setter for property " "without ivar"
@@ -178,17 +177,19 @@ class object_property:
                         attrsetter(self._name, ivname, self._copy),
                         selector=setterName,
                         signature=signature,
+                        isHidden=True,
                     )
-                    setprop.isHidden = True
                     instance_methods.add(setprop)
 
                     # Use dynamic setter to avoid problems when subclassing
                     self.__setprop = _dynamic_setter(_str(setterName))
             else:
                 setprop = selector(
-                    self._setter, selector=setterName, signature=signature
+                    self._setter,
+                    selector=setterName,
+                    signature=signature,
+                    isHidden=True,
                 )
-                setprop.isHidden = True
                 instance_methods.add(setprop)
 
                 # Use dynamic setter to avoid problems when subclassing
@@ -224,15 +225,17 @@ class object_property:
                     attrgetter(ivname),
                     selector=getterName,
                     signature=self._typestr + b"@:",
+                    isHidden=True,
                 )
-                self.__getprop.isHidden = True
                 instance_methods.add(self.__getprop)
 
         else:
             self.__getprop = getprop = selector(
-                self._getter, selector=getterName, signature=self._typestr + b"@:"
+                self._getter,
+                selector=getterName,
+                signature=self._typestr + b"@:",
+                isHidden=True,
             )
-            getprop.isHidden = True
             instance_methods.add(getprop)
             # self.__getprop = _dynamic_getter(getterName)
 
@@ -295,7 +298,6 @@ class object_property:
         return self
 
     def setter(self, function):
-
         if self.__created:
             v = self._clone()
             v._ro = False
@@ -663,40 +665,40 @@ class array_property(object_property):
             countOf,
             selector=(f"countOf{Name}").encode("latin1"),
             signature=_C_NSUInteger + b"@:",
+            isHidden=True,
         )
-        countOf.isHidden = True
         instance_methods.add(countOf)
 
         objectIn = selector(
             objectIn,
             selector=(f"objectIn{Name}AtIndex:").encode("latin1"),
             signature=b"@@:" + _C_NSUInteger,
+            isHidden=True,
         )
-        objectIn.isHidden = True
         instance_methods.add(objectIn)
 
         insert = selector(
             insert,
             selector=(f"insertObject:in{Name}AtIndex:").encode("latin1"),
             signature=b"v@:@" + _C_NSUInteger,
+            isHidden=True,
         )
-        insert.isHidden = True
         instance_methods.add(insert)
 
         remove = selector(
             remove,
             selector=(f"removeObjectFrom{Name}AtIndex:").encode("latin1"),
             signature=b"v@:" + _C_NSUInteger,
+            isHidden=True,
         )
-        remove.isHidden = True
         instance_methods.add(remove)
 
         replace = selector(
             replace,
             selector=(f"replaceObjectIn{Name}AtIndex:withObject:").encode("latin1"),
             signature=b"v@:" + _C_NSUInteger + b"@",
+            isHidden=True,
         )
-        replace.isHidden = True
         instance_methods.add(replace)
 
     def __set__(self, an_object, value):
@@ -1095,50 +1097,56 @@ class set_property(object_property):
             countOf,
             selector=(f"countOf{Name}").encode("latin1"),
             signature=_C_NSUInteger + b"@:",
+            isHidden=True,
         )
-        countOf.isHidden = True
         instance_methods.add(countOf)
 
         enumeratorOf = selector(
             enumeratorOf,
             selector=(f"enumeratorOf{Name}").encode("latin1"),
             signature=b"@@:",
+            isHidden=True,
         )
-        enumeratorOf.isHidden = True
         instance_methods.add(enumeratorOf)
 
         memberOf = selector(
             memberOf,
             selector=(f"memberOf{Name}:").encode("latin"),
             signature=b"@@:@",
+            isHidden=True,
         )
-        memberOf.isHidden = True
         instance_methods.add(memberOf)
 
         add1 = selector(
-            add, selector=(f"add{Name}:").encode("latin"), signature=b"v@:@"
+            add,
+            selector=(f"add{Name}:").encode("latin"),
+            signature=b"v@:@",
+            isHidden=True,
         )
-        add1.isHidden = True
         instance_methods.add(add1)
 
         add2 = selector(
-            add, selector=(f"add{Name}Object:").encode("latin1"), signature=b"v@:@"
+            add,
+            selector=(f"add{Name}Object:").encode("latin1"),
+            signature=b"v@:@",
+            isHidden=True,
         )
-        add2.isHidden = True
         instance_methods.add(add2)
 
         remove1 = selector(
-            remove, selector=(f"remove{Name}:").encode("latin1"), signature=b"v@:@"
+            remove,
+            selector=(f"remove{Name}:").encode("latin1"),
+            signature=b"v@:@",
+            isHidden=True,
         )
-        remove1.isHidden = True
         instance_methods.add(remove1)
 
         remove2 = selector(
             remove,
             selector=(f"remove{Name}Object:").encode("latin"),
             signature=b"v@:@",
+            isHidden=True,
         )
-        remove2.isHidden = True
         instance_methods.add(remove2)
 
 

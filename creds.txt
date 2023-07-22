@@ -1,7 +1,7 @@
-#Enter Spotify details  (no quotes)
+#Enter Spotify details  (no quotes) Modes are (block, gradient)
 client_id = 
 client_secret = 
 spot_username = 
-display_size = 
-
+display_size = 2560x1440
+mode = gradient
 

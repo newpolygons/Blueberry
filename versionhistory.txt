@@ -2,7 +2,7 @@
 
 - Implemented rounded corners on album image
 - Fix for better title and artist visibility (may be updated in future release)
-
+- Added Alternate Font
 
 TODO: 
 Python GUI

@@ -1,10 +1,12 @@
 from appscript import app, mactypes
+from AppKit import NSScreen
 from pathlib import Path
 import shutil, os, subprocess, random
 
 
 def applyWallpaperMac():
     #magic to force mac wallpaper to refresh (not proud of this implementation come back some day)
+
     number = random.randint(1, 999999)
     imagePath = "ImageCache/finalImage.png"
     pathList = os.path.splitext(imagePath)
@@ -34,4 +36,15 @@ def backupWallpaper():
     shutil.copy(currentWallpaper, '../ImageCache/backupwallpaper.png')
     '''
     pass
+
+
+def getScreenResolution():
+    width = int(NSScreen.mainScreen().frame().size.width)
+    height = int(NSScreen.mainScreen().frame().size.height)
+    width = str(width)
+    height = str(height)
+    res = width + "x" + height
+    return res
+
+    
     
