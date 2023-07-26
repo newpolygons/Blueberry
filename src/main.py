@@ -554,6 +554,7 @@ if __name__ == "__main__":
 
         #start with initializations
         init()
+        prev_status = ''
         while 1:
 
             #check if the song has been paused
@@ -563,7 +564,15 @@ if __name__ == "__main__":
                 #restore the original wallpaper
                 os.system(command + str(original_wallpaper))
                 t.sleep(5)
+                prev_status = "paused"
                 continue
+            elif status == "playing" and prev_status == "paused":
+                #if the song has been paused and then resumed, change the wallpaper
+                prev_status = "playing"
+                os.system(command + os.getcwd() + "/ImageCache/finalImage.png")
+                t.sleep(5)
+                continue
+
 
             if songTitle != checkSong():
                 #change the song title in the file
