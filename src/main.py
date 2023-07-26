@@ -6,6 +6,7 @@ from PIL import Image, ImageDraw, ImageFont, ImageFilter
 from spotipy.oauth2 import SpotifyOAuth
 import random, json
 from cachetools import TTLCache
+import math
 
 # Get creds please enter your creds in creds.txt
 
@@ -157,6 +158,12 @@ def get_song_name():
     get_id = requests.get("https://api.spotify.com/v1/me/player/currently-playing", headers=header)
 
     song_content = get_id.json()
+
+    #check if the song is paused
+    if not song_content['is_playing']:
+        status = "paused"
+    else:
+        status = "playing"
     
     id = song_content['item']['id']
     # If the ID is not available, wait for 2 seconds and retry getting the song ID
@@ -169,7 +176,7 @@ def get_song_name():
     if not name:
         t.sleep(2)
         get_song_name()
-    return name
+    return name, status
 
 
 
@@ -549,7 +556,14 @@ if __name__ == "__main__":
         init()
         while 1:
 
-            songTitle = get_song_name()
+            #check if the song has been paused
+            songTitle, status = get_song_name()
+
+            if status == "paused":
+                #restore the original wallpaper
+                os.system(command + str(original_wallpaper))
+                t.sleep(5)
+                continue
 
             if songTitle != checkSong():
                 #change the song title in the file
