@@ -155,7 +155,14 @@ def get_song_name():
     header = {
         "Authorization": "Bearer {}".format(spotify_token)
     }
-    get_id = requests.get("https://api.spotify.com/v1/me/player/currently-playing", headers=header)
+    try:
+        get_id = requests.get("https://api.spotify.com/v1/me/player/currently-playing", headers=header)
+
+    except:
+            # when connection is not stable (e.g. using University WiFi)
+            #then requests.get() can raise an error during the name resolution
+            #if this happens, simply wait a fixed time and recall the function
+        return get_song_name()
 
     song_content = get_id.json()
 
@@ -233,22 +240,31 @@ def albumImage():
     background.paste(image, ((int(background.width/2) - int(image.width / 2)), int((background.height/2) - int(image.height / 2))))
     background.save("ImageCache/finalImage.png")
 
+def calculate_color_distance(color1, color2):
+    r1, g1, b1 = color1.rgb
+    r2, g2, b2 = color2.rgb
+
+    distance = math.sqrt((r2 - r1)**2 + (g2 - g1)**2 + (b2 - b1)**2)
+    return distance
 
 def getColors():
-    #Setup Background Colors
+    # Setup Background Colors
     colors = colorgram.extract('ImageCache/albumImage.png', 2)
-    if len(colors) < 2:
-        firstColor = colors[0]
-        secondColor = colors[0]
-    else:
-        firstColor = colors[0]
-        secondColor = colors[1]
 
-    #check if colors are too similar
-    if abs(firstColor.rgb[0] - secondColor.rgb[0]) < 10 and abs(firstColor.rgb[1] - secondColor.rgb[1]) < 10 and abs(firstColor.rgb[2] - secondColor.rgb[2]) < 10:
-        secondColor = getThirdColor()
-    
-    return([firstColor, secondColor])
+    if len(colors) < 2:
+        # In this case, the function will return
+        return [colors[0], colors[0]]
+
+    # Check if colors are too similar
+    for i in range(1, len(colors)):
+        if calculate_color_distance(colors[0], colors[i]) >= 30:
+            # Colors are different enough, so return them
+            return [colors[0], colors[i]]
+
+    # For loop will end only if we run out of colors, so return the first two
+    return [colors[0], colors[1]]
+
+
 
 def getThirdColor():
     #Setup Background Colors
