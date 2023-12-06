@@ -10,7 +10,7 @@ import math
 
 # Get creds please enter your creds in creds.txt
 
-global spotify_token, client_id, client_secret, username, display, original_wallpaper, command, mode
+global spotify_token, client_id, client_secret, username, display, original_wallpaper, command, mode, environment
 client_id = ""
 client_secret = ""
 spotify_token = ""
@@ -18,24 +18,40 @@ username = ""
 scope = "user-read-currently-playing"
 display = ""
 cacheOn = True
+environment = ''
+#set up an array of available environments and commando to test
+availableEnvironment = [
+    {'envName': 'gnome',
+     'testCommand' : 'gnome-session',
+     'command' : 'gsettings set org.gnome.desktop.background picture-uri ' if ('dark' if 'dark' in (os.popen("gsettings get org.gnome.desktop.interface gtk-theme").read()) else 'light') == 'light' else 'gsettings set org.gnome.desktop.background picture-uri-dark '
+     }]
+
 #set 'cacheOn = False' in the previous line if you don't want to use cache
 
 cache = TTLCache(maxsize=100, ttl=3600)
 
 
 #check if gnome is in dark mode or light mode
-mode = 'dark' if 'dark' in (os.popen("gsettings get org.gnome.desktop.interface gtk-theme").read()) else 'light'
 
 #set the command to change the wallpaper: it changes depending on the mode
-command = 'gsettings set org.gnome.desktop.background picture-uri ' if mode == 'light' else 'gsettings set org.gnome.desktop.background picture-uri-dark '
 
 #get the path of the original wallpaper
 original_wallpaper = os.popen("gsettings get org.gnome.desktop.background picture-uri-dark").read()
 
+def getEnvironment():
+    global environment, command
+
+    for env in availableEnvironment:
+        result = os.popen(env['testCommand']).read().strip()
+        if not result:
+            environment, command = env['envName'], env['command']
+            break
 
 def  init():
     # Get variables from the credentials file
     datadict = get_variables()
+    #check if the environment is available
+    getEnvironment()
 
     #check if 'src/songCheck.txt' exists, if not create it
     if not os.path.exists("src/songCheck.txt"):
