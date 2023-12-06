@@ -70,8 +70,9 @@ def  init():
     client_id = datadict["client_id"]
     client_secret = datadict["client_secret"]
     username = datadict["spot_username"]
-    display = datadict["display_size"]
-    display = display.split("x")
+    display = os.popen("xrandr").read().split("\n")[2].split()[0].split("x")
+    #display = ['yourWidth', 'yourHeight']
+    # DON'T REMOVE THE ''
 
     # Authenticate with Spotify API
     spotify_authenticate()

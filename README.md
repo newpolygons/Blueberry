@@ -29,13 +29,12 @@ There are 4 modes: Album Cover, Gradient, Blurred and Waveform. If you want to u
 
 ### creds.txt
 
-Create a file called 'creds.txt' in the main directory and fill it with the following:
+Create a file called `creds.txt` in the main directory and fill it with the following:
 
 ``` txt
 client_id = your_client_id
 client_secret = your_client_secret
 spot_username = your_spotify_username
-display_size = your_display_size (ex. 1920x1080)
 ```
 
 ### How to get client_id and client_secret
@@ -45,10 +44,13 @@ display_size = your_display_size (ex. 1920x1080)
 3. Select 'Create an app'
 4. Choose a name and description for your app, then click 'Create'
 5. Click con 'Edit Settings' and set '<https://www.google.com/>' as new redirect URI, then Save
-6. In the app page, copy the Client ID and Client Secret and paste them in the 'creds.txt' file
-7. Write your Spotify username in the 'creds.txt' file
-8. Copy your display size (ex. 1920x1080) and paste it in the 'creds.txt' file (you can find it in Settings -> Devices -> Display Resolution or running the command `xrandr` in terminal)
-9. Save the file
+6. In the app page, copy the Client ID and Client Secret and paste them in the `creds.txt` file
+7. Write your Spotify username in the `creds.txt` file
+8. Save the file
+
+### Note on display dimension
+
+ Script automatically retrieve display dimension, using the first available in `xrandr`: if you want to use a custom one, change the second index in line 73, or decomment the following line and add your favorite resolution, following the already written pattern.
 
 ## TODO
 
