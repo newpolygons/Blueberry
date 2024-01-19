@@ -534,25 +534,21 @@ def waveform():
 
     invertedSchema = []
 
-    for i in range(100):
-        schema.append((int(i / 100 * width), int((1/2 + levels[i]/2) * height)))
-
-    #invert the schema by x-axis
-    for i in range(100):
-        invertedSchema.append((int(i / 100 * width), int((1/2 - levels[i]/2) * height)))
+    schema = [(int(i / 100 * width), int((1/2 + levels[i]/2) * height)) for i in range(100)]
+    
+    invertedSchema = [(int(i / 100 * width), int((1/2 - levels[i]/2) * height)) for i in range(100)]
 
 
     #normalize the schema to the height of the screen
-    for i in range(100):
-        schema[i] = (schema[i][0], int(schema[i][1] * (baseHeight / height)))
-        invertedSchema[i] = (invertedSchema[i][0], int(invertedSchema[i][1] * (baseHeight / height)))
+    schema = [(x, int(y * (baseHeight / height))) for x, y in schema]
+    invertedSchema = [(x, int(y * (baseHeight / height))) for x, y in invertedSchema]
 
     #create a draw object
     draw = ImageDraw.Draw(image)
 
     #draw a single line that starts from the y coordinate of the first point of the schema, and ends at the y coordinate of the point of the inverted schema with the same x coordinate
 
-    for i in range(100):
+    for i in range(len(schema)):
         draw.line((schema[i][0], schema[i][1], invertedSchema[i][0], invertedSchema[i][1]), fill = colors[1].rgb, width = 15, joint = 'curve')
 
     #resize the image to 60% of the size, both horizontally and vertically
@@ -614,7 +610,7 @@ if __name__ == "__main__":
                     f.write(songTitle)
                     f.close()
 
-                #choose randomly between tthe different modes, and generate the wallpaper
+                #choose randomly between the different modes, and generate the wallpaper
                 mode = random.choice(["gradient", "blurred", "waveform", "albumImage"])
                 
                 if mode == "gradient":
