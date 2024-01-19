@@ -184,7 +184,10 @@ def get_song_name():
     song_content = get_id.json()
 
     #check if the song is paused
-    if not song_content['is_playing']:
+    #check if 'is_playing' exists as key
+    
+    if 'is_playing' not in song_content:
+
         status = "paused"
     else:
         status = "playing"
