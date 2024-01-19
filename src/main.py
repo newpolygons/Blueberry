@@ -492,9 +492,15 @@ def waveform():
     'loudness': 1 - (min(max(segment['loudness_max'], -35), 0) / -35)
     } for segment in data['segments']]
 
+    for element in segments(data, duration):
+        print(element)
+
+    
+
 
     #find the maximum loudness
     max_loudness = max([segment['loudness'] for segment in segments(data, duration)])
+    print(max_loudness)
 
     #find the minimum loudness
     min_loudness = min([segment['loudness'] for segment in segments(data, duration)])
@@ -513,15 +519,12 @@ def waveform():
         levels.append((s / max_loudness) / 2)
         i += 1    
 
-    #if a level is too low, set it to the mean of the previous and the next level
-    for i in range(99):
-        if levels[i] < 0.5 and levels[i + 1] < 0.5 and levels[i -1] < 0.5:
-            levels[i] = (levels[i - 1] + levels[i + 1]) / 2
+    print("aAAAAAAAAAAAAAAAA")
+    for element in segments(data, duration):
+        print(element)
 
-    #if a level is too high, set it to the mean of the previous and the next level
-    for i in range(99):
-        if levels[i] > 0.33 and levels[i + 1] > 0.33 and levels[i -1 ] > 0.33:
-            levels[i] = (levels[i - 1] + levels[i + 1]) / 2
+    #if a level is too low, set it to the mean of the previous and the next level
+    
 
 
     
@@ -537,18 +540,22 @@ def waveform():
     invertedSchema = []
 
     for i in range(100):
-        schema.append((int(i / 100 * width), int((1 - levels[i]) * height)))
+        schema.append((int(i / 100 * width), int((1/2 + levels[i]/2) * height)))
 
     #invert the schema by x-axis
     for i in range(100):
-        invertedSchema.append((int(i / 100 * width), int(levels[i] * height)))
+        invertedSchema.append((int(i / 100 * width), int((1/2 - levels[i]/2) * height)))
 
+    for i in range(100):
+        print(schema[i][1], invertedSchema[i][1])
     #normalize the schema to the height of the screen
     for i in range(100):
         schema[i] = (schema[i][0], int(schema[i][1] * (baseHeight / height)))
         invertedSchema[i] = (invertedSchema[i][0], int(invertedSchema[i][1] * (baseHeight / height)))
 
-    
+    for i in range(100):
+        print(schema[i][0], schema[i][1], invertedSchema[i][0], invertedSchema[i][1], schema[i][1]+invertedSchema[i][1])
+
     #create a draw object
     draw = ImageDraw.Draw(image)
 
@@ -617,7 +624,7 @@ if __name__ == "__main__":
                     f.close()
 
                 #choose randomly between tthe different modes, and generate the wallpaper
-                mode = random.choice(["gradient", "blurred", "waveform", "albumImage"])
+                """mode = random.choice(["gradient", "blurred", "waveform", "albumImage"])
                 
                 if mode == "gradient":
                     gradient()
@@ -626,12 +633,14 @@ if __name__ == "__main__":
                 elif mode == "waveform":
                     waveform()
                 elif mode == "albumImage":
-                    albumImage()
+                    albumImage()"""
+                
+                waveform()
 
                 #change the wallpaper                           
                 os.system(command + os.getcwd() + "/ImageCache/finalImage.png")
 
-            t.sleep(5)
+            t.sleep(1)
 
     except KeyboardInterrupt:
         #when the program is stopped, change the wallpaper back to the original one
