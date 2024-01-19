@@ -260,16 +260,30 @@ def albumImage():
     background.paste(image, ((int(background.width/2) - int(image.width / 2)), int((background.height/2) - int(image.height / 2))))
     background.save("ImageCache/finalImage.png")
 
-def calculate_color_distance(color1, color2):
-    r1, g1, b1 = color1.rgb
-    r2, g2, b2 = color2.rgb
 
-    distance = math.sqrt((r2 - r1)**2 + (g2 - g1)**2 + (b2 - b1)**2)
-    return distance
+def calculate_relative_luminance(color):
+    r, g, b = color.rgb
+
+    # Calculate relative luminance using the specified formula
+    luminance = 0.2126 * r + 0.7152 * g + 0.0722 * b
+    return luminance
+
+def calculate_contrast_ratio(color1, color2):
+    # Calculate relative luminance for both colors
+    luminance1 = calculate_relative_luminance(color1)
+    luminance2 = calculate_relative_luminance(color2)
+
+    # Ensure that the lighter color's luminance is in luminance1
+    if luminance2 > luminance1:
+        luminance1, luminance2 = luminance2, luminance1
+
+    # Calculate contrast ratio with "+ 0.05" for adjustment
+    contrast_ratio = (luminance1 + 0.05) / (luminance2 + 0.05)
+    return contrast_ratio
 
 def getColors():
     # Setup Background Colors
-    colors = colorgram.extract('ImageCache/albumImage.png', 2)
+    colors = colorgram.extract('ImageCache/albumImage.png', 13)
 
     if len(colors) < 2:
         # In this case, the function will return
@@ -277,24 +291,13 @@ def getColors():
 
     # Check if colors are too similar
     for i in range(1, len(colors)):
-        if calculate_color_distance(colors[0], colors[i]) >= 30:
+        if calculate_contrast_ratio(colors[0], colors[i]) >= 2:
             # Colors are different enough, so return them
             return [colors[0], colors[i]]
-
-    # For loop will end only if we run out of colors, so return the first two
-    return [colors[0], colors[1]]
-
-
-
-def getThirdColor():
-    #Setup Background Colors
-    colors = colorgram.extract('ImageCache/albumImage.png', 3)
-    if len(colors) < 3:
-        thirdColor = colors[0]
     else:
-        thirdColor = colors[2]
-    
-    return(thirdColor)
+        return [colors[0], colors[1]]
+    # For loop will end only if we run out of colors, so return the first two
+
 
 def checkSong():
     f = open("src/songCheck.txt", "r")
@@ -456,6 +459,8 @@ def get_audio_analysis(song_id):
     else:
         print("Error during request")
 
+def map_range(value, from_min, from_max, to_min, to_max):
+    return (value - from_min) * (to_max - to_min) / (from_max - from_min) + to_min
 
 def waveform():
     #generate the waveform image, using the track ID and colors of the album image
@@ -489,10 +494,10 @@ def waveform():
     segments = lambda data, duration: [{
     'start': segment['start'] / duration,
     'duration': segment['duration'] / duration,
-    'loudness': 1 - (min(max(segment['loudness_max'], -35), 0) / -35)
+    'loudness': 10 ** (segment['loudness_max'] /10)
     } for segment in data['segments']]
 
- 
+    
 
 
     #find the maximum loudness
@@ -517,8 +522,6 @@ def waveform():
 
     #if a level is too low, set it to the mean of the previous and the next level
     
-
-
     
     #create a new image with the dimensions of the display
     width = int(display[0])
@@ -612,7 +615,7 @@ if __name__ == "__main__":
                     f.close()
 
                 #choose randomly between tthe different modes, and generate the wallpaper
-                """mode = random.choice(["gradient", "blurred", "waveform", "albumImage"])
+                mode = random.choice(["gradient", "blurred", "waveform", "albumImage"])
                 
                 if mode == "gradient":
                     gradient()
@@ -621,14 +624,12 @@ if __name__ == "__main__":
                 elif mode == "waveform":
                     waveform()
                 elif mode == "albumImage":
-                    albumImage()"""
-                
-                waveform()
+                    albumImage()
 
                 #change the wallpaper                           
                 os.system(command + os.getcwd() + "/ImageCache/finalImage.png")
 
-            t.sleep(1)
+            t.sleep(3)
 
     except KeyboardInterrupt:
         #when the program is stopped, change the wallpaper back to the original one
