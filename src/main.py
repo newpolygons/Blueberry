@@ -549,7 +549,12 @@ def waveform():
     #draw a single line that starts from the y coordinate of the first point of the schema, and ends at the y coordinate of the point of the inverted schema with the same x coordinate
 
     for i in range(len(schema)):
-        draw.line((schema[i][0], schema[i][1], invertedSchema[i][0], invertedSchema[i][1]), fill = colors[1].rgb, width = 15, joint = 'curve')
+        #draw.line((schema[i][0], schema[i][1], invertedSchema[i][0], invertedSchema[i][1]), fill = colors[1].rgb, width = 15)
+        if (schema[i][1] - invertedSchema[i][1] < 32):
+            draw.rounded_rectangle((invertedSchema[i][0], height/2 - 16, schema[i][0]+16, height/2 + 16), fill = colors[1].rgb, radius= 8)
+        else:
+            draw.rounded_rectangle((invertedSchema[i][0], invertedSchema[i][1], schema[i][0]+16, schema[i][1]), fill = colors[1].rgb, radius= 8)
+
 
     #resize the image to 60% of the size, both horizontally and vertically
     image = image.resize((int(width * 0.6), int(height * 0.6)), Image.LANCZOS)
