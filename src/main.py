@@ -1,6 +1,6 @@
 from types import ClassMethodDescriptorType
 import requests, colorgram, os, platform
-import time as t
+import time
 import spotipy.util as util
 from PIL import Image, ImageDraw, ImageFont, ImageFilter
 from spotipy.oauth2 import SpotifyOAuth
@@ -108,7 +108,7 @@ def get_song_id():
 
         # If the ID is not available, wait for 2 seconds and retry getting the song ID
         if not id:
-            t.sleep(2)
+            time.sleep(2)
             get_song_id()
 
         name = song_content['item']['name']
@@ -117,7 +117,7 @@ def get_song_id():
         imageUrl = song_content['item']['album']['images'][1]['url']
 
         if not name or not artistName or not imageUrl:
-            t.sleep(2)
+            time.sleep(2)
             get_song_id()
 
         #save the id of the album which contains the song
@@ -143,12 +143,12 @@ def get_song_id():
     except TypeError:
         print("Spotify Error: make sure valid song is playing")
         print("Waiting for valid song to be played.")
-        t.sleep(5)
+        time.sleep(5)
         get_song_id()
     except ValueError:
         print("Error: looks like no song is playing")
         print("Waiting for song to be played.")
-        t.sleep(5)
+        time.sleep(5)
         get_song_id()
 
 
@@ -167,45 +167,100 @@ def get_variables():
                     exit()
         return dicti
 
-def get_song_name():
-    # Get the name of the currently playing song
-    header = {
-        "Authorization": "Bearer {}".format(spotify_token)
-    }
+
+
+from cachetools import TTLCache
+import requests
+import time
+import os
+
+# Assuming the image cache is defined globally
+image_cache = TTLCache(maxsize=100, ttl=3600)  # Adjust size and ttl as needed
+
+def download_image(image_url):
+    """
+    Downloads an image from the given URL and stores its data in the cache.
+    The image data is cached using the image URL as the key.
+    
+    Args:
+        image_url (str): URL of the image to download.
+    
+    Returns:
+        bytes: The image data, or None if the download fails.
+    """
+    if image_url in image_cache:
+        print("Image found in cache. Returning cached image data.")
+        return image_cache[image_url]
+    
     try:
-        get_id = requests.get("https://api.spotify.com/v1/me/player/currently-playing", headers=header)
+        response = requests.get(image_url)
+        response.raise_for_status()  # Check if the request was successful
 
-    except:
-            # when connection is not stable (e.g. using University WiFi)
-            #then requests.get() can raise an error during the name resolution
-            #if this happens, simply wait a fixed time and recall the function
-        return get_song_name()
+        # Cache the image data
+        image_data = response.content
+        image_cache[image_url] = image_data
+        
+        return image_data
+    except requests.exceptions.RequestException as e:
+        print(f"Failed to download image: {e}")
+        return None
 
-    song_content = get_id.json()
 
-    #check if the song is paused
-    #check if 'is_playing' exists as key
+def get_song_details(spotify_token, retry_delay=2, max_retries=3):
+    """
+    Fetches and downloads details of the currently playing song from Spotify, including downloading the cover image.
     
-    if 'is_playing' not in song_content:
-
-        status = "paused"
-    else:
-        status = "playing"
+    Args:
+        spotify_token (str): Spotify API token.
+        retry_delay (int): Time in seconds to wait before retries.
+        max_retries (int): Maximum number of retries for the request.
     
-    id = song_content['item']['id']
-    # If the ID is not available, wait for 2 seconds and retry getting the song ID
-    if not id:
-        t.sleep(2)
-        get_song_id()
-    name = song_content['item']['name']
-    artistName = song_content['item']['album']['artists'][0]['name']
-    imageUrl = song_content['item']['album']['images'][1]['url']
-    if not name:
-        t.sleep(2)
-        get_song_name()
-    return name, status
+    Returns:
+        tuple or None: Returns a tuple with song details (name, status, local image path, artistName, songId)
+                       or None if the request fails or data is incomplete.
+    """
+    header = {"Authorization": f"Bearer {spotify_token}"}
+    url = "https://api.spotify.com/v1/me/player/currently-playing"
 
+    for attempt in range(max_retries):
+        try:
+            response = requests.get(url, headers=header)
+            response.raise_for_status()  # This will raise an error for HTTP error responses
 
+            song_content = response.json()
+
+            # Check if the response has the necessary information
+            if 'item' not in song_content or not song_content['item']:
+                print("No song information found. Retrying...")
+                time.sleep(retry_delay)
+                continue
+
+            status = "paused" if 'is_playing' not in song_content or not song_content['is_playing'] else "playing"
+            item = song_content['item']
+            name = item.get('name')
+            artistName = item['album']['artists'][0].get('name')
+            imageUrl = item['album']['images'][0].get('url')  # Using the first image (usually the largest)
+            songId = item.get('id')
+
+            # Download the image and get its local path
+            image_path = download_image(imageUrl)
+
+            if not all([name, artistName, imageUrl, songId, image_path]):
+                print("Incomplete song information or failed to download image. Retrying...")
+                time.sleep(retry_delay)
+                continue
+
+            return name, status, image_path, artistName, songId
+
+        except requests.exceptions.RequestException as e:
+            print(f"Request failed: {e}. Retrying in {retry_delay} seconds...")
+            time.sleep(retry_delay)
+        except KeyError as e:
+            print(f"Missing expected data: {e}. Retrying...")
+            time.sleep(retry_delay)
+
+    print("Maximum retries reached. Exiting function.")
+    return None
 
 
 def albumImage():
@@ -300,10 +355,15 @@ def getColors():
 
 
 def checkSong():
-    f = open("src/songCheck.txt", "r")
-    song = f.read()
-    f.close()
-    return song
+    """
+    Get the song title from the file 'src/songCheck.txt'
+    
+    Returns:
+        str: The song title from the file.
+    """
+
+    with open("src/songCheck.txt", "r") as f:
+        return f.read()
 
 
 def gradient():
@@ -354,7 +414,7 @@ def gradient():
         draw.line((0, i, width, i), fill = (int(firstColor[0] + (secondColor[0] - firstColor[0]) * i / height), int(firstColor[1] + (secondColor[1] - firstColor[1]) * i / height), int(firstColor[2] + (secondColor[2] - firstColor[2]) * i / height)))
 
     # save the gradient image
-    gradient.save('ImageCache/gradient.png')
+    gradient.save('ImageCache/gradientime.png')
 
     #generate the text image
     
@@ -376,7 +436,7 @@ def gradient():
     #draw the text
     draw.text((50,50), (songTitle + "\n" + songArtist), font = myFont, fill = (textColor[0],textColor[1],textColor[2]))
     #save the text image
-    text.save('ImageCache/text.png')
+    text.save('ImageCache/textime.png')
 
 
 
@@ -390,7 +450,7 @@ def gradient():
     # paste the text image in a layer on top of the background image
     background = Image.new('RGB', (width, height))
     background.paste(Image.open("ImageCache/finalImage.png"), (0, 0))
-    background.paste(Image.open("ImageCache/text.png"), (0, 0), mask = Image.open("ImageCache/text.png"))
+    background.paste(Image.open("ImageCache/textime.png"), (0, 0), mask = Image.open("ImageCache/textime.png"))
     background.save("ImageCache/finalImage.png")
 
 
@@ -575,10 +635,10 @@ def waveform():
     #draw the text
     draw.text((50,50), (songTitle + "\n" + songArtist), font = myFont, fill = (colors[1].rgb))
     #save the text image
-    text.save('ImageCache/text.png')
+    text.save('ImageCache/textime.png')
     
     #paste the text image vertically centered and lower than the waveform image
-    tmp.paste(Image.open("ImageCache/text.png"), ((int(tmp.width/2) - int(Image.open("ImageCache/text.png").width / 2), int((tmp.height/2) + int(image.height / 2))))    )
+    tmp.paste(Image.open("ImageCache/textime.png"), ((int(tmp.width/2) - int(Image.open("ImageCache/textime.png").width / 2), int((tmp.height/2) + int(image.height / 2))))    )
 
     #save the image
     tmp.save("ImageCache/finalImage.png")
@@ -590,24 +650,32 @@ if __name__ == "__main__":
         #start with initializations
         init()
         prev_status = ''
-        while 1:
+        while True:
 
             #check if the song has been paused
-            songTitle, status = get_song_name()
+            song_details = get_song_details(spotify_token)
+
+            if song_details is None:
+                print("Failed to retrieve song details. Trying again...")
+                time.sleep(5)  # Wait a bit before retrying
+                continue
+
+            songTitle, status, imageUrl, artistName, songId = song_details
+
 
             if status == "paused":
                 #restore the original wallpaper
                 os.system(command + str(original_wallpaper))
-                t.sleep(5)
+                time.sleep(5)
                 prev_status = "paused"
                 continue
-            elif status == "playing" and prev_status == "paused":
+
+            if status == "playing" and prev_status == "paused":
                 #if the song has been paused and then resumed, change the wallpaper
                 prev_status = "playing"
                 os.system(command + os.getcwd() + "/ImageCache/finalImage.png")
-                t.sleep(5)
+                time.sleep(5)
                 continue
-
 
             if songTitle != checkSong():
                 #change the song title in the file
@@ -630,7 +698,7 @@ if __name__ == "__main__":
                 #change the wallpaper                           
                 os.system(command + os.getcwd() + "/ImageCache/finalImage.png")
 
-            t.sleep(3)
+            time.sleep(5)
 
     except KeyboardInterrupt:
         #when the program is stopped, change the wallpaper back to the original one
