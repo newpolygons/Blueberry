@@ -1,3 +1,4 @@
+import io
 from types import ClassMethodDescriptorType
 import requests, colorgram, os, platform
 import time
@@ -169,13 +170,8 @@ def get_variables():
 
 
 
-from cachetools import TTLCache
-import requests
-import time
-import os
 
-# Assuming the image cache is defined globally
-image_cache = TTLCache(maxsize=100, ttl=3600)  # Adjust size and ttl as needed
+
 
 def download_image(image_url):
     """
@@ -188,17 +184,18 @@ def download_image(image_url):
     Returns:
         bytes: The image data, or None if the download fails.
     """
-    if image_url in image_cache:
-        print("Image found in cache. Returning cached image data.")
-        return image_cache[image_url]
     
-    try:
+    if image_url in cache:
+        print("Image found in cache. Returning cached image data.")
+        return cache[image_url]
+    
+    try: 
         response = requests.get(image_url)
         response.raise_for_status()  # Check if the request was successful
 
         # Cache the image data
         image_data = response.content
-        image_cache[image_url] = image_data
+        cache[image_url] = image_data
         
         return image_data
     except requests.exceptions.RequestException as e:
@@ -243,14 +240,13 @@ def get_song_details(spotify_token, retry_delay=2, max_retries=3):
             songId = item.get('id')
 
             # Download the image and get its local path
-            image_path = download_image(imageUrl)
 
-            if not all([name, artistName, imageUrl, songId, image_path]):
+            if not all([name, artistName, imageUrl, songId]):
                 print("Incomplete song information or failed to download image. Retrying...")
                 time.sleep(retry_delay)
                 continue
 
-            return name, status, image_path, artistName, songId
+            return name, status, imageUrl, artistName, songId
 
         except requests.exceptions.RequestException as e:
             print(f"Request failed: {e}. Retrying in {retry_delay} seconds...")
@@ -263,57 +259,47 @@ def get_song_details(spotify_token, retry_delay=2, max_retries=3):
     return None
 
 
-def albumImage():
-    try:
-        # Get the song information including title and artist
-        songInformation = get_song_id()
-        songTitle = songInformation[1]
-        songArtist = songInformation[2]
-    except:
-        return
 
-    # Setup Album Image
-    width = int(int(display[0]) / 5)
-    height = int(int(display[1]) / 2)
+
+def create_color_background(baseWidth, baseHeight, colors):
+    """
+    Create a background image with two colors.
     
-    baseWidth = int(display[0])
-    baseHeight = int(display[1])
-    image = Image.open("ImageCache/albumImage.png")
-    wpercent = (width/float(image.size[0]))
-    hsize = int((float(image.size[1])*float(wpercent)))
-    image = image.resize((width,hsize), Image.LANCZOS)
-    image.save('ImageCache/albumImage.png')
-    
-    colors = getColors()
-
-    # Setup Text: check if the first color is too light or too dark
-    textColor = colors[0].rgb
-
-    #if the color is too light, make the text black, otherwise make it white
-    if (textColor[0]*0.299 + textColor[1]*0.587 + textColor[2]*0.114) > 186:
-        textColor = (int(0), int(0), int(0))
-    else:
-        textColor = (int(255), int(255), int(255))
-     
-    colorImageOne = Image.new('RGB', (baseWidth, int(baseHeight / 2)), (colors[0].rgb))
-    titleArtist = ImageDraw.Draw(colorImageOne)
-
-    myFont = ImageFont.truetype("./fonts/Rubik.ttf", 40)
-    titleArtist.text((50,50), (songTitle + "\n" + songArtist), font = myFont, fill = (textColor[0],textColor[1],textColor[2]))
-
-    colorImageTwo = Image.new('RGB', (baseWidth, int(baseHeight / 2)), (colors[1].rgb))
-
-
-    #Combine Images
+    Args:
+        baseWidth (int): The width of the background image.
+        baseHeight (int): The height of the background image.
+        colors (list): A list of two colors to use for the background.
+        
+    Returns:
+        Image: A new background image with two colors."""
+    colorImageOne = Image.new('RGB', (baseWidth, int(baseHeight / 2)), colors[0].rgb)
+    colorImageTwo = Image.new('RGB', (baseWidth, int(baseHeight / 2)), colors[1].rgb)
 
     background = Image.new('RGB', (colorImageOne.width, colorImageOne.height + colorImageTwo.height))
     background.paste(colorImageOne, (0, 0))
     background.paste(colorImageTwo, (0, colorImageOne.height))
 
+    return background
+
+def albumImage(display, songTitle, songArtist, imageUrl):
+    """
+    Generate a wallpaper based on the album image and song details.
     
-    finalImage = Image.new('RGB', (width, height))
-    background.paste(image, ((int(background.width/2) - int(image.width / 2)), int((background.height/2) - int(image.height / 2))))
-    background.save("ImageCache/finalImage.png")
+    Args:
+        display (tuple): The dimensions of the display.
+        songTitle (str): The title of the currently playing song.
+        artistName (str): The name of the artist of the currently playing song.
+        imageUrl (str): The URL of the song's cover image.
+        
+    Returns:
+        None: The generated wallpaper is saved to the 'ImageCache' directory."""
+    image = setup_album_image(display, imageUrl)
+    text = generate_text_image(songTitle, artistName, getColors(), display)
+
+    background = create_color_background(int(display[0]), int(display[1]), getColors())
+
+    paste_and_save_album_image(background, image, display, text)
+    
 
 
 def calculate_relative_luminance(color):
@@ -364,60 +350,70 @@ def checkSong():
 
     with open("src/songCheck.txt", "r") as f:
         return f.read()
-
-
-def gradient():
-
+    
+def get_image_from_cache(imageUrl):
     try:
-        # Get the song information including title and artist
-        songInformation = get_song_id()
-        songTitle = songInformation[1]
-        songArtist = songInformation[2]
+        image =  cache[imageUrl]
+        return image
+    except KeyError:
+        download_image(imageUrl)
+        return cache[imageUrl]
     except:
-        return
+        print("Error: couldn't get image from cache")
+        return None
 
-    # Setup Album Image
+
+
+def setup_album_image(display, imageUrl):
+    """
+    Setup the album image for the wallpaper.
+    
+    Args:
+        display (tuple): The dimensions of the display.
+        imageUrl (str): The URL of the album image.
+        
+        Returns:
+        Image: The album image, resized and saved to the 'ImageCache' directory.
+        """
     width = int(int(display[0]) / 5)
     height = int(int(display[1]) / 2)
-    
-    baseWidth = int(display[0])
-    baseHeight = int(display[1])
-    image = Image.open("ImageCache/albumImage.png")
+
+    image = get_image_from_cache(imageUrl)
+    image = Image.open(io.BytesIO(image))
+
     wpercent = (width/float(image.size[0]))
     hsize = int((float(image.size[1])*float(wpercent)))
     image = image.resize((width,hsize), Image.LANCZOS)
     image.save('ImageCache/albumImage.png')
-    
-    # Get the colors of the album image
-    colors = getColors()
+    return image
 
+
+def generate_gradient_image(colors, display):
     # Create a gradient image with the colors of the album image
-
-    # use the dimensions of the display
-
     width = int(display[0])
     height = int(display[1])
-
-    # create a new image with the dimensions of the display
     gradient = Image.new('RGB', (width, height))
 
-    # create a draw object
+    # Create a draw object
     draw = ImageDraw.Draw(gradient)
 
-    # the first color will be the first color of the album image
+    # The first color will be the first color of the album image
     firstColor = colors[0].rgb
-    # the second color will be the second color of the album image
+    # The second color will be the second color of the album image
     secondColor = colors[1].rgb
 
-    # draw the gradient
+    # Draw the gradient
     for i in range(height):
         draw.line((0, i, width, i), fill = (int(firstColor[0] + (secondColor[0] - firstColor[0]) * i / height), int(firstColor[1] + (secondColor[1] - firstColor[1]) * i / height), int(firstColor[2] + (secondColor[2] - firstColor[2]) * i / height)))
 
-    # save the gradient image
-    gradient.save('ImageCache/gradientime.png')
+    gradient.save('ImageCache/gradient.png')
+    return gradient
 
-    #generate the text image
-    
+
+
+def generate_text_image(songTitle, artistName, colors, display, positionX = 50, positionY = 50):
+    width = int(display[0])
+    height = int(display[1])
     # Setup Text: check if the first color is too light or too dark
     textColor = colors[0].rgb
 
@@ -434,24 +430,54 @@ def gradient():
     #set the font
     myFont = ImageFont.truetype("./fonts/Rubik.ttf", 40)
     #draw the text
-    draw.text((50,50), (songTitle + "\n" + songArtist), font = myFont, fill = (textColor[0],textColor[1],textColor[2]))
+    draw.text((positionX,positionY), (songTitle + "\n" + artistName), font = myFont, fill = (textColor[0],textColor[1],textColor[2]))
     #save the text image
-    text.save('ImageCache/textime.png')
+    return text
 
+def paste_and_save_album_image(bg, cover, display, text):
+    width = int(display[0])
+    height = int(display[1])
+    # Paste the album image, bigger of 120% of the size, in the center of the gradient image
+    bg.paste(cover, ((int(bg.width/2) - int(cover.width / 2)), int((bg.height/2) - int(cover.height / 2))))
 
+    #save the final image
 
-    # paste the album image, bigger of 120% of the size, in the center of the gradient image
-    gradient.paste(image, ((int(gradient.width/2) - int(image.width / 2)), int((gradient.height/2) - int(image.height / 2))))
-    # save the image
-    gradient.save("ImageCache/finalImage.png")
-
-    
-
-    # paste the text image in a layer on top of the background image
     background = Image.new('RGB', (width, height))
-    background.paste(Image.open("ImageCache/finalImage.png"), (0, 0))
-    background.paste(Image.open("ImageCache/textime.png"), (0, 0), mask = Image.open("ImageCache/textime.png"))
+    background.paste(bg, (0, 0))
+    background.paste(text, (0, 0), mask = text)
     background.save("ImageCache/finalImage.png")
+
+    return background
+
+
+
+def gradient(songTitle, imageUrl, artistName):
+    """
+    Generate a gradient wallpaper based on the song details.
+
+    Args:
+        songTitle (str): The title of the currently playing song.
+        status (str): The status of the song (e.g., "playing" or "paused").
+        imageUrl (str): The URL of the song's cover image.
+        artistName (str): The name of the artist of the currently playing song.
+        songId (str): The ID of the currently playing song.
+
+    Returns:
+        None: The generated wallpaper is saved to the 'ImageCache' directory.
+    """
+    # Retrieve and set-up the image from the cache using imageUrl as the key
+    image = setup_album_image(display, imageUrl)
+
+
+    # Create a gradient image with the colors of the album image, using the dimensions of the display
+    gradient = generate_gradient_image(getColors(), display)
+
+    #generate the text image
+    text = generate_text_image(songTitle, artistName, getColors(), display)
+
+    paste_and_save_album_image(gradient, image, display, text)
+
+
 
 
 def blurred():
@@ -635,10 +661,10 @@ def waveform():
     #draw the text
     draw.text((50,50), (songTitle + "\n" + songArtist), font = myFont, fill = (colors[1].rgb))
     #save the text image
-    text.save('ImageCache/textime.png')
+    text.save('ImageCache/text.png')
     
     #paste the text image vertically centered and lower than the waveform image
-    tmp.paste(Image.open("ImageCache/textime.png"), ((int(tmp.width/2) - int(Image.open("ImageCache/textime.png").width / 2), int((tmp.height/2) + int(image.height / 2))))    )
+    tmp.paste(Image.open("ImageCache/text.png"), ((int(tmp.width/2) - int(Image.open("ImageCache/textime.png").width / 2), int((tmp.height/2) + int(image.height / 2))))    )
 
     #save the image
     tmp.save("ImageCache/finalImage.png")
@@ -661,7 +687,6 @@ if __name__ == "__main__":
                 continue
 
             songTitle, status, imageUrl, artistName, songId = song_details
-
 
             if status == "paused":
                 #restore the original wallpaper
@@ -687,14 +712,14 @@ if __name__ == "__main__":
                 mode = random.choice(["gradient", "blurred", "waveform", "albumImage"])
                 
                 if mode == "gradient":
-                    gradient()
-                elif mode == "blurred":
+                    gradient(songTitle, imageUrl, artistName)
+                if mode == "blurred":
                     blurred()
-                elif mode == "waveform":
+                if mode == "waveform":
                     waveform()
-                elif mode == "albumImage":
-                    albumImage()
-
+                if mode == "albumImage":
+                    albumImage(display, songTitle, artistName, imageUrl)
+                    
                 #change the wallpaper                           
                 os.system(command + os.getcwd() + "/ImageCache/finalImage.png")
 
@@ -707,3 +732,11 @@ if __name__ == "__main__":
         with open("src/songCheck.txt", "w") as f:
             f.write("")
             f.close()
+    #if the program is stopped with any other method, change the wallpaper back to the original one
+    except:
+        os.system(command + str(original_wallpaper))
+        #clear songCheck.txt so that the next time the program is run, it will change the wallpaper
+        with open("src/songCheck.txt", "w") as f:
+            f.write("")
+            f.close()
+        raise
