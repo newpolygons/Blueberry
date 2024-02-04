@@ -40,6 +40,11 @@ cache = TTLCache(maxsize=100, ttl=3600)
 original_wallpaper = os.popen("gsettings get org.gnome.desktop.background picture-uri-dark").read()
 
 def getEnvironment():
+    """
+    Get the environment of the user, and the command to change the wallpaper
+    
+    Returns:
+        None: the environment and the command are stored in global variables"""
     global environment, command
 
     for env in availableEnvironment:
@@ -49,6 +54,12 @@ def getEnvironment():
             break
 
 def  init():
+    """
+    Initialize the program, by getting the credentials, the environment, and the original wallpaper
+
+    Returns:
+        None: the credentials, the environment, and the original wallpaper are stored in global variables"""
+    
     # Get variables from the credentials file
     datadict = get_variables()
     #check if the environment is available
@@ -79,10 +90,14 @@ def  init():
     spotify_authenticate()
 
     # Get the ID of the currently playing song
-    get_song_id()
+
 
 
 def spotify_authenticate():
+    """
+    Authenticate with the Spotify API using the credentials from the creds.txt file.
+    The authentication token is stored in the global variable spotify_token.
+    """
     # Get the Spotify access token for authentication
     global spotify_token
     token = util.prompt_for_user_token(username, scope, client_id, client_secret, "https://www.google.com/")
@@ -94,67 +109,15 @@ def spotify_authenticate():
         exit()
 
 
-def get_song_id():
-    global cacheOn
-
-    # Get the ID, name, artist, and image URL of the currently playing song from Spotify API
-    header = {
-        "Authorization": "Bearer {}".format(spotify_token)
-    }
-    get_id = requests.get("https://api.spotify.com/v1/me/player/currently-playing", headers=header)
-
-    try:
-        song_content = get_id.json()
-        id = song_content['item']['id']
-
-        # If the ID is not available, wait for 2 seconds and retry getting the song ID
-        if not id:
-            time.sleep(2)
-            get_song_id()
-
-        name = song_content['item']['name']
-
-        artistName = song_content['item']['album']['artists'][0]['name']
-        imageUrl = song_content['item']['album']['images'][1]['url']
-
-        if not name or not artistName or not imageUrl:
-            time.sleep(2)
-            get_song_id()
-
-        #save the id of the album which contains the song
-        albumID = song_content['item']['album']['id']
-        # save the image of the song using the album ID as ID, so songs from the same album will have the same image
-        if albumID not in cache and cacheOn:
-            cache[albumID] = imageUrl
-            image = requests.get(imageUrl)
-            with open('ImageCache/albumImage.png', 'wb') as file:
-                file.write(image.content)
-        else:
-            image = requests.get(cache[albumID])
-            
-            with open('ImageCache/albumImage.png', 'wb') as file:
-                file.write(image.content)
-
-
-        return [id, name, artistName]
-    except KeyError:
-        # If a KeyError occurs (e.g., song content is not available), re-authenticate and retry getting the song ID
-        spotify_authenticate()
-        get_song_id()
-    except TypeError:
-        print("Spotify Error: make sure valid song is playing")
-        print("Waiting for valid song to be played.")
-        time.sleep(5)
-        get_song_id()
-    except ValueError:
-        print("Error: looks like no song is playing")
-        print("Waiting for song to be played.")
-        time.sleep(5)
-        get_song_id()
-
 
 def get_variables():
-    # Read the credentials from the creds.txt file and store them in a dictionary
+    """
+    Get the variables from the creds.txt file.
+
+    Returns:
+        dict: A dictionary containing the variables from the creds.txt file.
+
+    """
     dicti = {}
     with open('creds.txt', 'r') as file:
         content = file.readlines()
@@ -186,7 +149,6 @@ def download_image(image_url):
     """
     
     if image_url in cache:
-        print("Image found in cache. Returning cached image data.")
         return cache[image_url]
     
     try: 
@@ -196,7 +158,11 @@ def download_image(image_url):
         # Cache the image data
         image_data = response.content
         cache[image_url] = image_data
-        
+
+        #save the image in the ImageCache directory
+        with open('ImageCache/albumImage.png', 'wb') as file:
+            file.write(image_data)
+
         return image_data
     except requests.exceptions.RequestException as e:
         print(f"Failed to download image: {e}")
@@ -239,7 +205,6 @@ def get_song_details(spotify_token, retry_delay=2, max_retries=3):
             imageUrl = item['album']['images'][0].get('url')  # Using the first image (usually the largest)
             songId = item.get('id')
 
-            # Download the image and get its local path
 
             if not all([name, artistName, imageUrl, songId]):
                 print("Incomplete song information or failed to download image. Retrying...")
@@ -294,15 +259,24 @@ def albumImage(display, songTitle, songArtist, imageUrl):
     Returns:
         None: The generated wallpaper is saved to the 'ImageCache' directory."""
     image = setup_album_image(display, imageUrl)
-    text = generate_text_image(songTitle, artistName, getColors(), display)
+    text = generate_text_image(songTitle, artistName, getColors(imageUrl), display)
 
-    background = create_color_background(int(display[0]), int(display[1]), getColors())
+    background = create_color_background(int(display[0]), int(display[1]), getColors(imageUrl))
 
     paste_and_save_album_image(background, image, display, text)
     
 
 
 def calculate_relative_luminance(color):
+    """
+    Calculate the relative luminance of a color using the formula:
+    L = 0.2126 * R + 0.7152 * G + 0.0722 * B
+    
+    Args:
+        color (Color): A color object.
+        
+    Returns:
+        float: The relative luminance of the color."""
     r, g, b = color.rgb
 
     # Calculate relative luminance using the specified formula
@@ -322,7 +296,17 @@ def calculate_contrast_ratio(color1, color2):
     contrast_ratio = (luminance1 + 0.05) / (luminance2 + 0.05)
     return contrast_ratio
 
-def getColors():
+def getColors(imageUrl):
+    """
+    Get the two most prominent colors from the album image.
+    
+    Returns:
+        list: A list of two color objects extracted from the album image.
+        """
+    
+    #retrieve the image from the cache
+    image = get_image_from_cache(imageUrl)
+    image = Image.open(io.BytesIO(image))
     # Setup Background Colors
     colors = colorgram.extract('ImageCache/albumImage.png', 13)
 
@@ -389,6 +373,15 @@ def setup_album_image(display, imageUrl):
 
 
 def generate_gradient_image(colors, display):
+    """
+    Generate a gradient image based on the colors of the album image.
+    
+    Args:
+        colors (list): A list of two color objects.
+        display (tuple): The dimensions of the display.
+        
+    Returns:
+        Image: A gradient image with the colors of the album image."""
     # Create a gradient image with the colors of the album image
     width = int(display[0])
     height = int(display[1])
@@ -412,6 +405,19 @@ def generate_gradient_image(colors, display):
 
 
 def generate_text_image(songTitle, artistName, colors, display, positionX = 50, positionY = 50):
+    """
+    Generate a text image with the song title and artist name.
+    
+    Args:
+        songTitle (str): The title of the currently playing song.
+        artistName (str): The name of the artist of the currently playing song.
+        colors (list): A list of two color objects.
+        display (tuple): The dimensions of the display.
+        positionX (int): The x-coordinate of the text.
+        positionY (int): The y-coordinate of the text.
+        
+    Returns:
+        Image: A new image with the song title and artist name, and transparent background."""
     width = int(display[0])
     height = int(display[1])
     # Setup Text: check if the first color is too light or too dark
@@ -435,6 +441,16 @@ def generate_text_image(songTitle, artistName, colors, display, positionX = 50, 
     return text
 
 def paste_and_save_album_image(bg, cover, display, text):
+    """
+    Paste the album image in the center of the background image and save the final image.
+
+    Args:
+        bg (Image): The background image.
+        cover (Image): The album image.
+        display (tuple): The dimensions of the display.
+        text (Image): The text image.
+    """
+
     width = int(display[0])
     height = int(display[1])
     # Paste the album image, bigger of 120% of the size, in the center of the gradient image
@@ -470,68 +486,117 @@ def gradient(songTitle, imageUrl, artistName):
 
 
     # Create a gradient image with the colors of the album image, using the dimensions of the display
-    gradient = generate_gradient_image(getColors(), display)
+    gradient = generate_gradient_image(getColors(imageUrl), display)
 
     #generate the text image
-    text = generate_text_image(songTitle, artistName, getColors(), display)
+    text = generate_text_image(songTitle, artistName, getColors(imageUrl), display)
 
     paste_and_save_album_image(gradient, image, display, text)
 
 
+def resize_and_center_image(image, target_width, target_height):
+    """
+    Resizes an image to a target width, and centers it vertically.
+
+    Args:
+        image (Image): The image to resize.
+        target_width (int): The target width of the image.
+        target_height (int): The target height of the image.
+
+    Returns:
+        Image: The resized and centered image.
+    """
+    # Resize with preserved aspect ratio
+    aspect_ratio = image.width / image.height
+    new_height = target_height
+    new_width = int(int(aspect_ratio) * int(new_height))
+    resized_image = image.resize((int(new_width), int(new_height)), Image.LANCZOS)
+
+    target_width = int(target_width)
+    # Center the image vertically
+    if new_width > target_width:
+        x_offset = (new_width - target_width) // 2
+        resized_and_centered_image = resized_image.crop((x_offset, 0, x_offset + target_width, new_height))
+    else:
+        resized_and_centered_image = resized_image
+
+    return resized_and_centered_image
 
 
-def blurred():
-    #this function will create a background image with the blurred album image, filling the whole screen, and the cover image in the center
+def create_blurred_background(cover_image_data, display_dimensions, blur_radius=20):
+    """
+    Creates a blurred background image from the cover image data.
+
+    Args:
+        cover_image_data (bytes): Image data as bytes.
+        display_dimensions (tuple): Dimensions of the display (width, height).
+        blur_radius (int): Radius of the Gaussian blur filter.
+
+    Returns:
+        Image: A new image with a blurred background and the album cover centered.
+
+    """
     try:
-        # Get the song information including title and artist
-        songInformation = get_song_id()
-        songTitle = songInformation[1]
-        songArtist = songInformation[2]
-    except:
-        #clean the text file
-        with open("src/songCheck.txt", "w") as f:
-            f.write("")
-            f.close()
+        image = Image.open(io.BytesIO(cover_image_data))
+
+
+        # Resize, crop, and blur the album image
+        base_width, base_height = display_dimensions
+        resized_image = resize_and_center_image(image, int(base_width)*2, int(base_height)*2)
+        blurred_image = resized_image.filter(ImageFilter.GaussianBlur(radius=blur_radius))
+
+        # Paste the cover image in the center
+        cover_image = Image.open(io.BytesIO(cover_image_data))
+        cover_width, cover_height = cover_image.size
+        cover_image = cover_image.resize((int(1.2 * cover_width), int(1.2 * cover_height)), Image.LANCZOS)
+        x_position = (blurred_image.width - cover_image.width) // 2
+        y_position = (blurred_image.height - cover_image.height) // 2
+        blurred_image.paste(cover_image, (x_position, y_position))
+
+        return blurred_image
+    except Exception as e:
+        print(f"Error creating blurred background: {e}")
+        return None
+
+def blurred(cover_url, display_dimensions):
+    """
+    Main function to generate a blurred background with the album cover centered.
+
+    Args:
+        cover_url (str): URL of the album cover image.
+        display_dimensions (tuple): Dimensions of the display (width, height).
+
+    Returns:
+        None: The generated wallpaper is saved to the 'ImageCache' directory.
+    """
+    cover_image_data = get_image_from_cache(cover_url)  # Make sure this returns image data as bytes
+    if cover_image_data is None:
+        print("Failed to retrieve cover image.")
         return
 
-    # Setup Album Image
-    width = int(display[0]) // 5
-    height = int(display[1]) // 2
+    final_image = create_blurred_background(cover_image_data, display_dimensions)
+    if final_image:
+        final_image_path = "ImageCache/finalImage.png"
+        final_image.save(final_image_path)
+    else:
+        print("Failed to create blurred background.")
 
-    baseWidth = int(display[0])
-    baseHeight = int(display[1])
 
-    # Resize the album image to the width of the screen
-    image = Image.open("ImageCache/albumImage.png")
-    wpercent = baseWidth / float(image.size[0])
-    hsize = int(float(image.size[1]) * wpercent)
-    resized_image = image.resize((baseWidth, hsize), Image.LANCZOS)
 
-    #center the image vertically
-    resized_image = resized_image.crop((0, int((resized_image.height / 2) - (baseHeight / 2)), baseWidth, int((resized_image.height / 2) + (baseHeight / 2))))
-
-    # Crop and blur the image
-    cropped_image = resized_image.crop((0, 0, baseWidth, baseHeight))
-    blurred_image = cropped_image.filter(ImageFilter.GaussianBlur(radius=20))
-
-    # Resize the blurred image to the height of the screen, then center it
-    wpercent = baseHeight / float(blurred_image.size[1])
-    wsize = int(float(blurred_image.size[0]) * wpercent)
-    final_image = blurred_image.resize((wsize, baseHeight), Image.LANCZOS)
-    final_image = final_image.crop((int((final_image.width / 2) - (baseWidth / 2)), 0, int((final_image.width / 2) + (baseWidth / 2)), baseHeight))
-
-    # open the cover image, resize it to 120% of the size, and paste it in the center of the blurred image
-    cover_image = Image.open("ImageCache/albumImage.png")
-    wpercent = 1.2 * width / float(cover_image.size[0])
-    hsize = int(float(cover_image.size[1]) * wpercent)
-    cover_image = cover_image.resize((int(width * 1.2), hsize), Image.LANCZOS)
-    final_image.paste(cover_image, ((int(final_image.width / 2) - int(cover_image.width / 2)), int((final_image.height / 2) - int(cover_image.height / 2))))
-
-    # save the final image
-    final_image.save("ImageCache/finalImage.png")
 
 
 def get_audio_analysis(song_id):
+    """
+    Get the audio analysis for a song from the Spotify API.
+
+    Args:
+        song_id (str): The ID of the song.
+
+    Returns:
+        dict or None: A dictionary with the audio analysis data, or None if the request fails.
+    """
+
+
     url = f"https://api.spotify.com/v1/audio-analysis/{song_id}"
     headers = {
         "Accept": "application/json",
@@ -540,134 +605,134 @@ def get_audio_analysis(song_id):
     }
     response = requests.get(url, headers=headers)
     if response.status_code == 200:
-        with open('track.json', 'wb') as file:
-            file.write(response.content)
+        return response.json()
     else:
+
         print("Error during request")
+        return None
 
-def map_range(value, from_min, from_max, to_min, to_max):
-    return (value - from_min) * (to_max - to_min) / (from_max - from_min) + to_min
+def extract_loudness_data(audio_analysis, duration, sample_points=100):
+    """
+    Extracts loudness data from the audio analysis.
 
-def waveform():
-    #generate the waveform image, using the track ID and colors of the album image
-    try:
-        # Get the song information including title and artist
-        songInformation = get_song_id()
-        songTitle = songInformation[1]
-        songArtist = songInformation[2]
-        songID = songInformation[0]
-    except:
-        return
+    Args:
+        audio_analysis (dict): Audio analysis data from the Spotify API.
+        duration (float): Duration of the song in seconds.
+        sample_points (int): Number of sample points for the waveform.
 
-    width = int(display[0]) // 5
-    height = int(display[1]) // 2
+    Returns:
+        list: A list of normalized loudness levels for the waveform.
+    """
+    segments = [{
+        'start': segment['start'] / duration,
+        'duration': segment['duration'] / duration,
+        'loudness': 10 ** (segment['loudness_max'] / 20)  # Adjusted for perceptual loudness
+    } for segment in audio_analysis['segments']]
 
-    baseWidth = int(display[0])
-    baseHeight = int(display[1])
+    # Simplify to a fixed number of sample points for the waveform
+    loudness_levels = [0] * sample_points
+    for segment in segments:
+        start_index = int(segment['start'] * sample_points)
+        end_index = min(sample_points, int((segment['start'] + segment['duration']) * sample_points))
+        for i in range(start_index, end_index):
+            loudness_levels[i] = max(loudness_levels[i], segment['loudness'])
 
-
-    get_audio_analysis(songID)
-
-    #What I want to do is greatly simplify this data to only include an array of loudness levels from 0 to 1. I’ll then use this array of levels to generate a waveform
-
-    #open the json file
-    with open('track.json') as f:
-        data = json.load(f)
-
-    duration = data['track']['duration']
-
-    #map the the segments data to only include the start, duration ad loudness properties
-    segments = lambda data, duration: [{
-    'start': segment['start'] / duration,
-    'duration': segment['duration'] / duration,
-    'loudness': 10 ** (segment['loudness_max'] /10)
-    } for segment in data['segments']]
-
-    
+    # Normalize loudness levels
+    max_loudness = max(loudness_levels, default=1)
+    return [level / max_loudness for level in loudness_levels]
 
 
-    #find the maximum loudness
-    max_loudness = max([segment['loudness'] for segment in segments(data, duration)])
 
-    #find the minimum loudness
-    min_loudness = min([segment['loudness'] for segment in segments(data, duration)])
+def generate_waveform_image(levels, display_dimensions, colors):
+    """
+    Generates a waveform image based on normalized loudness levels.
 
-    #get the colors of the album image
-    colors = getColors()
+    Args:
+        levels (list): Normalized loudness levels from audio analysis.
+        display_dimensions (tuple): Dimensions of the display (width, height).
+        colors (tuple): Tuple containing two RGB colors (background, waveform).
 
-    levels = []
-    i = 0
-    while i < 100:
-        s = 0
-        for segment in segments(data, duration):
-            if segment['start'] < i / 100 < segment['start'] + segment['duration']:
-                s += segment['loudness']
-        #if a level is too high or too low, set it to the mean of the previous and the next level
-        levels.append((s / max_loudness) / 2)
-        i += 1    
+    Returns:
+        PIL.Image: An image object with the waveform.
+    """
+    width, height = display_dimensions
+    baseHeight = height  # Assuming baseHeight is used for normalization
 
-    #if a level is too low, set it to the mean of the previous and the next level
-    
-    
-    #create a new image with the dimensions of the display
-    width = int(display[0])
-    height = int(display[1])
+    # Create a new image with the dimensions of the display
     image = Image.new('RGB', (width, height), colors[0].rgb)
 
+    # Generate schema for the waveform
+    schema = [(int(i / 100 * width), int((1/2 + level/2) * height)) for i, level in enumerate(levels)]
+    invertedSchema = [(int(i / 100 * width), int((1/2 - level/2) * height)) for i, level in enumerate(levels)]
 
-    #create the schema for the waveform
-    schema = []
-
-    invertedSchema = []
-
-    schema = [(int(i / 100 * width), int((1/2 + levels[i]/2) * height)) for i in range(100)]
-    
-    invertedSchema = [(int(i / 100 * width), int((1/2 - levels[i]/2) * height)) for i in range(100)]
-
-
-    #normalize the schema to the height of the screen
+    # Normalize the schema to the height of the screen
     schema = [(x, int(y * (baseHeight / height))) for x, y in schema]
     invertedSchema = [(x, int(y * (baseHeight / height))) for x, y in invertedSchema]
 
-    #create a draw object
+    # Create a draw object
     draw = ImageDraw.Draw(image)
 
-    #draw a single line that starts from the y coordinate of the first point of the schema, and ends at the y coordinate of the point of the inverted schema with the same x coordinate
-
+    # Draw the waveform
     for i in range(len(schema)):
-        #draw.line((schema[i][0], schema[i][1], invertedSchema[i][0], invertedSchema[i][1]), fill = colors[1].rgb, width = 15)
-        if (schema[i][1] - invertedSchema[i][1] < 32):
-            draw.rounded_rectangle((invertedSchema[i][0], height/2 - 16, schema[i][0]+16, height/2 + 16), fill = colors[1].rgb, radius= 8)
+        start_point = schema[i]
+        end_point = (invertedSchema[i][0], schema[i][1])  # Adjusted to match start and end y-coordinates
+
+        if abs(start_point[1] - invertedSchema[i][1]) < 32:
+            draw.rounded_rectangle([invertedSchema[i][0], height/2 - 16, start_point[0]+16, height/2 + 16], fill=colors[1].rgb, radius=8)
         else:
-            draw.rounded_rectangle((invertedSchema[i][0], invertedSchema[i][1], schema[i][0]+16, schema[i][1]), fill = colors[1].rgb, radius= 8)
+            draw.rounded_rectangle([invertedSchema[i][0], invertedSchema[i][1], start_point[0]+16, start_point[1]], fill=colors[1].rgb, radius=8)
+    # Resize the image to 60% of its size, both horizontally and vertically
+    resized_image = image.resize((int(width * 0.6), int(height * 0.6)), Image.LANCZOS)
 
 
-    #resize the image to 60% of the size, both horizontally and vertically
-    image = image.resize((int(width * 0.6), int(height * 0.6)), Image.LANCZOS)
+    return resized_image
 
-    #tmp will be the final image, with the background color of the first color of the album image
-    tmp = Image.new('RGB', (width, height), colors[0].rgb)
 
-    #paste the waveform image in the center of the background image, centered vertically and horizontally
-    tmp.paste(image, ((int(tmp.width/2) - int(image.width / 2)), int((tmp.height/2) - int(image.height / 2))))
 
-    #TEXT
-    #create a new image with the name of the song and the artist, and color of the first color of the album image as background
-    text = Image.new('RGBA', (width, height), (colors[0].rgb))
-    #create a draw object
-    draw = ImageDraw.Draw(text)
-    #set the font
-    myFont = ImageFont.truetype("./fonts/Rubik.ttf", 40)
-    #draw the text
-    draw.text((50,50), (songTitle + "\n" + songArtist), font = myFont, fill = (colors[1].rgb))
-    #save the text image
-    text.save('ImageCache/text.png')
+
+def waveform(song_id, display, imageUrl, artistName, songTitle):
+    """
+    Generate a wallpaper with a waveform based on the audio analysis of the song.
+
+    Args:
+        song_id (str): The ID of the song.
+        display (tuple): The dimensions of the display.
+        imageUrl (str): The URL of the song's cover image.
+        artistName (str): The name of the artist of the currently playing song.
+        songTitle (str): The title of the currently playing song.
+
+    Returns:
+        None: The generated wallpaper is saved to the 'ImageCache' directory.
+    """
+
+    #get the album image
+    image = get_image_from_cache(imageUrl)
+    # Get audio analysis for the song
+    audio_analysis = get_audio_analysis(song_id)
+    if audio_analysis is None:
+        print("Failed to retrieve audio analysis.")
+        return
     
-    #paste the text image vertically centered and lower than the waveform image
-    tmp.paste(Image.open("ImageCache/text.png"), ((int(tmp.width/2) - int(Image.open("ImageCache/textime.png").width / 2), int((tmp.height/2) + int(image.height / 2))))    )
+    loudness = extract_loudness_data(audio_analysis, audio_analysis['track']['duration'])
+    width, height = display
 
-    #save the image
-    tmp.save("ImageCache/finalImage.png")
+    loudness = [loud * 0.75 for loud in loudness]
+    
+    # Generate the waveform image
+    waveform_image = generate_waveform_image(loudness, (int(width), int(height)), getColors(imageUrl))
+    # Generate the text image in the low-left corner
+    text_image = generate_text_image(songTitle, artistName, getColors(imageUrl), display, positionX=50, positionY=int(height) - 150)
+    # Create a new image with the first color of the album image as the background
+    final_image = Image.new('RGB', (int(width), int(height)), getColors(imageUrl)[0].rgb)
+    # Paste the waveform image in the center of the background image, centered vertically and horizontally
+    final_image.paste(waveform_image, ((int(final_image.width/2) - int(waveform_image.width / 2)), int((final_image.height/2) - int(waveform_image.height / 2))))
+    # Paste the text image 
+    final_image.paste(text_image, (0, 0), mask=text_image)
+
+    # Save the image
+    final_image.save("ImageCache/finalImage.png")
+    
+
 
 if __name__ == "__main__":
 
@@ -703,6 +768,9 @@ if __name__ == "__main__":
                 continue
 
             if songTitle != checkSong():
+                # Download the image and get its local path
+                download_image(imageUrl)
+
                 #change the song title in the file
                 with open("src/songCheck.txt", "w") as f:
                     f.write(songTitle)
@@ -714,9 +782,9 @@ if __name__ == "__main__":
                 if mode == "gradient":
                     gradient(songTitle, imageUrl, artistName)
                 if mode == "blurred":
-                    blurred()
+                    blurred(imageUrl, display)
                 if mode == "waveform":
-                    waveform()
+                    waveform(songId, display, imageUrl, artistName, songTitle)
                 if mode == "albumImage":
                     albumImage(display, songTitle, artistName, imageUrl)
                     
