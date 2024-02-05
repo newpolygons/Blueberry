@@ -8,6 +8,7 @@ from spotipy.oauth2 import SpotifyOAuth
 import random, json
 from cachetools import TTLCache
 import math
+from urllib.parse import urlencode
 
 # Get creds please enter your creds in creds.txt
 
@@ -27,7 +28,6 @@ availableEnvironment = [
      'command' : 'gsettings set org.gnome.desktop.background picture-uri ' if ('dark' if 'dark' in (os.popen("gsettings get org.gnome.desktop.interface gtk-theme").read()) else 'light') == 'light' else 'gsettings set org.gnome.desktop.background picture-uri-dark '
      }]
 
-#set 'cacheOn = False' in the previous line if you don't want to use cache
 
 cache = TTLCache(maxsize=100, ttl=3600)
 
@@ -52,6 +52,115 @@ def getEnvironment():
         if not result:
             environment, command = env['envName'], env['command']
             break
+
+def get_token_refresh():
+    """
+    Get the Spotify refresh token from the cache file
+
+    Returns:
+        str: The Spotify refresh token
+    """
+    filename = f".cache-{username}"
+    try:
+        with open(filename, 'r') as file:
+            data = json.load(file)
+            return data['refresh_token']
+    except:
+        return None
+    
+
+def write_token_refresh(refresh_token):
+    """
+    Write the Spotify refresh token to the cache file
+
+    Args:
+        refresh_token (str): The Spotify refresh token to write to the cache file
+
+    Returns:
+        None: The Spotify refresh token is written to the cache file
+    """
+    filename = f".cache-{username}"
+    try:
+        with open(filename, 'r') as file:
+            data = json.load(file)
+            data['refresh_token'] = refresh_token
+            with open(filename, 'w') as file:
+                json.dump(data, file)
+    except:
+        return None
+    
+
+def write_token(spotify_token):
+    """
+    Write the Spotify token to the cache
+    
+    Args:
+        spotify_token (str): The Spotify token to write to the cache file
+        
+    Returns:
+        None: The Spotify token is written to the cache file"""
+    filename = f".cache-{username}"
+    try:
+        with open(filename, 'r') as file:
+            data = json.load(file)
+            data['access_token'] = spotify_token
+            with open(filename, 'w') as file:
+                json.dump(data, file)
+    except:
+        return None
+
+
+def token_refresh():
+    """
+    Refresh the Spotify token using the refresh token
+
+    Returns:
+        str: The new Spotify token
+    """
+    refresh_token = get_token_refresh()
+    url = "https://accounts.spotify.com/api/token"
+
+    if refresh_token:
+        payload = {
+        'grant_type': 'refresh_token',
+        'refresh_token': refresh_token,
+        'client_id': client_id
+        }
+
+        headers = {'Content-Type': 'application/x-www-form-urlencoded'}
+
+        response = requests.post(url, headers=headers, data=urlencode(payload))
+
+        # Check if the request was successful
+        if response.status_code == 200:
+            # Extract the new access and refresh tokens from the response
+            response_data = response.json()
+            spotify_token = response_data.get('access_token')
+            new_refresh_token = response_data.get('refresh_token', refresh_token)  # Use the same refresh token if a new one isn't provided
+
+            # Here you would update your storage mechanism with the new tokens
+            # Since Python scripts don't have direct access to browser's localStorage,
+            # you need to adapt this part to your application's environment.
+            print("New access token:", spotify_token)
+            print("New refresh token:", new_refresh_token)
+
+            # Write the new tokens to the cache
+            write_token(spotify_token)
+            write_token_refresh(new_refresh_token)
+
+            return spotify_token
+
+            
+        else:
+            print("Failed to refresh the token, status code:", response.status_code)
+            print("Trying to authenticate again")
+            spotify_authenticate()
+            return 
+    else:
+        print("No refresh token found, trying to authenticate again")
+        spotify_authenticate()
+        return
+
 
 def  init():
     """
@@ -89,7 +198,6 @@ def  init():
     # Authenticate with Spotify API
     spotify_authenticate()
 
-    # Get the ID of the currently playing song
 
 
 
@@ -215,10 +323,21 @@ def get_song_details(spotify_token, retry_delay=2, max_retries=3):
 
         except requests.exceptions.RequestException as e:
             print(f"Request failed: {e}. Retrying in {retry_delay} seconds...")
+            if hasattr(e, 'response') and e.response:
+                if e.response.status_code == 401:
+                    # Token has expired, reauthenticate
+                    spotify_token = token_refresh()
+                    print("Token refreshed")
+                    continue  
+                elif e.response.status_code == 429:
+                    retry_after = int(e.response.headers.get('Retry-After', retry_delay))
+                    print(f"Rate limited. Retrying in {retry_after} seconds...")
+                    time.sleep(retry_after)
+                    continue  
             time.sleep(retry_delay)
         except KeyError as e:
             print(f"Missing expected data: {e}. Retrying...")
-            time.sleep(retry_delay)
+            time.sleep(retry_delay)  
 
     print("Maximum retries reached. Exiting function.")
     return None
