@@ -598,6 +598,93 @@ def paste_and_save_album_image(bg, cover, display, text):
     return background
 
 
+def calculate_gradient_color(radius, startRadius, endRadius, colors):
+
+    position = (radius - startRadius) / (endRadius - startRadius)
+
+    color = []
+
+    for i in range(3):
+        # Calculate the color value for the current position
+        colorValue = int(colors[0].rgb[i] + (colors[1].rgb[i] - colors[0].rgb[i]) * position)
+        # Ensure the color value is within the valid range
+        colorValue = max(0, min(255, colorValue))
+        # Update the color list with the new value
+        color.append(colorValue)
+
+    #make a tuple with the color values
+    color = (color[0], color[1], color[2])
+
+    return color
+
+def find_darkest_color(colors):
+    """
+    Find the darkest color in a list of colors.
+
+    Args:
+        colors (list): A list of color objects.
+
+    Returns:
+        Color:s: A list of color objects.
+
+    """
+    #distance from black
+    distance1 = math.sqrt(colors[0].rgb[0]**2 + colors[0].rgb[1]**2 + colors[0].rgb[2]**2)
+    distance2 = math.sqrt(colors[1].rgb[0]**2 + colors[1].rgb[1]**2 + colors[1].rgb[2]**2)
+
+    if distance1 > distance2:
+        return [colors[0], colors[1]]
+    else:
+        return [colors[1], colors[0]]
+
+
+def generate_gradient_from_center(colors, display, albumImageWidth):
+    """
+    Generate a gradient image with the colors of the album image, from the center to the edges.
+    
+    Args:
+        colors (list): A list of two color objects.
+        display (tuple): The dimensions of the display.
+        
+    Returns:
+        Image: A gradient image with the colors of the album image, from the center to the edges."""
+    
+    width = int(display[0])
+    height = int(display[1])
+
+    # determine the number of ellipses to draw
+    ellipses = 300
+
+    # Create a new image with the dimensions of the display
+    gradient = Image.new('RGB', (width, height))
+
+    # Create a draw object
+    draw = ImageDraw.Draw(gradient)
+
+    minDim = min(width, height)
+    maxDim = max(width, height)
+    # Calculate the optimal number of ellipses
+    ellipses = int(ellipses * (minDim / maxDim))
+    print("DEBUG:", ellipses, minDim, maxDim, width, height, albumImageWidth)
+
+    #find the optimal width for the ellipses to be drawn
+    optimalWidth = int(minDim / ellipses)+2
+
+    # Draw the ellipses
+    for i in range(ellipses):
+        #skip all the ellipses that would be drawn inside the album image
+        if i / ellipses * min(width, height) < albumImageWidth/2:
+            continue
+        # Calculate the radius of the current ellipse
+        radius = int((i / ellipses) * min(width, height))
+        # Calculate the color for the current ellipse
+        color = calculate_gradient_color(radius, 0, min(width, height), colors)
+        # Draw the ellipse
+        draw.ellipse([(width / 2 - radius, height / 2 - radius), (width / 2 + radius, height / 2 + radius)], width=optimalWidth, outline=color)
+
+    gradient.save('ImageCache/gradient.png')
+
+    return gradient
 
 def gradient(songTitle, imageUrl, artistName):
     """
@@ -616,12 +703,22 @@ def gradient(songTitle, imageUrl, artistName):
     # Retrieve and set-up the image from the cache using imageUrl as the key
     image = setup_album_image(display, imageUrl)
 
+    albumImageWidth = image.width
 
-    # Create a gradient image with the colors of the album image, using the dimensions of the display
-    gradient = generate_gradient_image(getColors(imageUrl), display)
+    #choose randomly from standard or from center to the edges
+    choice = random.choice([True, False])
+
+    if choice:
+        # Create a gradient image with the colors of the album image, using the dimensions of the display
+        gradient = generate_gradient_image(getColors(imageUrl), display)
+        text = generate_text_image(songTitle, artistName, getColors(imageUrl), display)
+
+    else:
+        # Create a gradient image with the colors of the album image, using the dimensions of the display
+        gradient = generate_gradient_from_center(find_darkest_color(getColors(imageUrl)), display, albumImageWidth)
+        text = generate_text_image(songTitle, artistName, find_darkest_color(getColors(imageUrl)), display)
 
     #generate the text image
-    text = generate_text_image(songTitle, artistName, getColors(imageUrl), display)
 
     paste_and_save_album_image(gradient, image, display, text)
 
@@ -915,7 +1012,7 @@ if __name__ == "__main__":
                 #choose randomly between the different modes, and generate the wallpaper
                 mode = random.choice(["gradient", "blurred", "waveform", "albumImage"])
                 
-                if mode == "gradient":
+                """if mode == "gradient":
                     gradient(songTitle, imageUrl, artistName)
 
                 elif mode == "blurred":
@@ -930,7 +1027,8 @@ if __name__ == "__main__":
                     
                 elif mode == "albumImage":
                     albumImage(display, songTitle, artistName, imageUrl)
-                    
+                    """
+                gradient(songTitle, imageUrl, artistName)
                 #change the wallpaper                           
                 os.system(command + os.getcwd() + "/ImageCache/finalImage.png")
 
