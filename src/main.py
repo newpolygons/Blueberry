@@ -296,9 +296,21 @@ def get_song_details(spotify_token, retry_delay=2, max_retries=3):
     for attempt in range(max_retries):
         try:
             response = requests.get(url, headers=header)
-            response.raise_for_status()  # This will raise an error for HTTP error responses
-
+            status = int(response.status_code)
             song_content = response.json()
+
+            if status == 401:
+                # Token has expired, reauthenticate
+                spotify_token = token_refresh()
+                print("Token refreshed")
+                
+                continue
+            
+            if status == 429:
+                retry_after = int(response.headers.get('Retry-After', retry_delay))
+                print(f"Rate limited. Retrying in {retry_after} seconds...")
+                time.sleep(retry_after)
+                continue
 
             # Check if the response has the necessary information
             if 'item' not in song_content or not song_content['item']:
@@ -315,7 +327,7 @@ def get_song_details(spotify_token, retry_delay=2, max_retries=3):
 
 
             if not all([name, artistName, imageUrl, songId]):
-                print("Incomplete song information or failed to download image. Retrying...")
+                print("Incomplete song information. Retrying...")
                 time.sleep(retry_delay)
                 continue
 
@@ -323,17 +335,7 @@ def get_song_details(spotify_token, retry_delay=2, max_retries=3):
 
         except requests.exceptions.RequestException as e:
             print(f"Request failed: {e}. Retrying in {retry_delay} seconds...")
-            if hasattr(e, 'response') and e.response:
-                if e.response.status_code == 401:
-                    # Token has expired, reauthenticate
-                    spotify_token = token_refresh()
-                    print("Token refreshed")
-                    continue  
-                elif e.response.status_code == 429:
-                    retry_after = int(e.response.headers.get('Retry-After', retry_delay))
-                    print(f"Rate limited. Retrying in {retry_after} seconds...")
-                    time.sleep(retry_after)
-                    continue  
+             
             time.sleep(retry_delay)
         except KeyError as e:
             print(f"Missing expected data: {e}. Retrying...")
@@ -464,6 +466,17 @@ def get_image_from_cache(imageUrl):
     except:
         print("Error: couldn't get image from cache")
         return None
+    
+def resetSong():
+    """
+    Reset the song title in the file 'src/songCheck.txt'
+    
+    Returns:
+        None: The file 'src/songCheck.txt' is reset.
+    """
+    with open("src/songCheck.txt", "w") as f:
+        f.write("")
+        f.close()
 
 
 
@@ -697,8 +710,10 @@ def blurred(cover_url, display_dimensions):
     if final_image:
         final_image_path = "ImageCache/finalImage.png"
         final_image.save(final_image_path)
+        return True
     else:
         print("Failed to create blurred background.")
+        return False
 
 
 
@@ -724,6 +739,10 @@ def get_audio_analysis(song_id):
     }
     response = requests.get(url, headers=headers)
     if response.status_code == 200:
+        #save the audio analysis in a file
+        with open("src/audioAnalysis.json", "w") as f:
+            f.write(json.dumps(response.json()))
+            f.close()
         return response.json()
     else:
 
@@ -824,8 +843,6 @@ def waveform(song_id, display, imageUrl, artistName, songTitle):
         None: The generated wallpaper is saved to the 'ImageCache' directory.
     """
 
-    #get the album image
-    image = get_image_from_cache(imageUrl)
     # Get audio analysis for the song
     audio_analysis = get_audio_analysis(song_id)
     if audio_analysis is None:
@@ -886,13 +903,13 @@ if __name__ == "__main__":
                 time.sleep(5)
                 continue
 
-            if songTitle != checkSong():
+            if songId != checkSong():
                 # Download the image and get its local path
                 download_image(imageUrl)
 
                 #change the song title in the file
                 with open("src/songCheck.txt", "w") as f:
-                    f.write(songTitle)
+                    f.write(songId)
                     f.close()
 
                 #choose randomly between the different modes, and generate the wallpaper
@@ -900,11 +917,18 @@ if __name__ == "__main__":
                 
                 if mode == "gradient":
                     gradient(songTitle, imageUrl, artistName)
-                if mode == "blurred":
-                    blurred(imageUrl, display)
-                if mode == "waveform":
+
+                elif mode == "blurred":
+                    if blurred(imageUrl, display) == False:
+                        # If the blurred background fails, retry the entire process
+                        resetSong()
+                        continue
+
+                elif mode == "waveform":
                     waveform(songId, display, imageUrl, artistName, songTitle)
-                if mode == "albumImage":
+
+                    
+                elif mode == "albumImage":
                     albumImage(display, songTitle, artistName, imageUrl)
                     
                 #change the wallpaper                           
@@ -923,7 +947,5 @@ if __name__ == "__main__":
     except:
         os.system(command + str(original_wallpaper))
         #clear songCheck.txt so that the next time the program is run, it will change the wallpaper
-        with open("src/songCheck.txt", "w") as f:
-            f.write("")
-            f.close()
+        resetSong()
         raise
