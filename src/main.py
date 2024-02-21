@@ -1012,7 +1012,7 @@ if __name__ == "__main__":
                 #choose randomly between the different modes, and generate the wallpaper
                 mode = random.choice(["gradient", "blurred", "waveform", "albumImage"])
                 
-                """if mode == "gradient":
+                if mode == "gradient":
                     gradient(songTitle, imageUrl, artistName)
 
                 elif mode == "blurred":
@@ -1027,8 +1027,7 @@ if __name__ == "__main__":
                     
                 elif mode == "albumImage":
                     albumImage(display, songTitle, artistName, imageUrl)
-                    """
-                gradient(songTitle, imageUrl, artistName)
+
                 #change the wallpaper                           
                 os.system(command + os.getcwd() + "/ImageCache/finalImage.png")
 
