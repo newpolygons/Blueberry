@@ -665,7 +665,6 @@ def generate_gradient_from_center(colors, display, albumImageWidth):
     maxDim = max(width, height)
     # Calculate the optimal number of ellipses
     ellipses = int(ellipses * (minDim / maxDim))
-    print("DEBUG:", ellipses, minDim, maxDim, width, height, albumImageWidth)
 
     #find the optimal width for the ellipses to be drawn
     optimalWidth = int(minDim / ellipses)+2
@@ -709,12 +708,12 @@ def gradient(songTitle, imageUrl, artistName):
     choice = random.choice([True, False])
 
     if choice:
-        # Create a gradient image with the colors of the album image, using the dimensions of the display
+        # Create a gradient image with the colors of the album image, starting from the top to the bottom
         gradient = generate_gradient_image(getColors(imageUrl), display)
         text = generate_text_image(songTitle, artistName, getColors(imageUrl), display)
 
     else:
-        # Create a gradient image with the colors of the album image, using the dimensions of the display
+        # Create a gradient image with the colors of the album image, starting from the center to the edges
         gradient = generate_gradient_from_center(find_darkest_color(getColors(imageUrl)), display, albumImageWidth)
         text = generate_text_image(songTitle, artistName, find_darkest_color(getColors(imageUrl)), display)
 
@@ -1011,7 +1010,7 @@ if __name__ == "__main__":
 
                 #choose randomly between the different modes, and generate the wallpaper
                 mode = random.choice(["gradient", "blurred", "waveform", "albumImage"])
-                
+
                 if mode == "gradient":
                     gradient(songTitle, imageUrl, artistName)
 

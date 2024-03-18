@@ -16,6 +16,8 @@ There are 4 modes: Album Cover, Gradient, Blurred and Waveform. If you want to u
 
 ![Waveform mode](src/img/Waveform.png)
 
+![Gradient mode from the center](src/img/centeredGradient.png)
+
 ## Usage
 
 1. Download the repo
