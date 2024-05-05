@@ -9,6 +9,9 @@ import random, json
 from cachetools import TTLCache
 import math
 from urllib.parse import urlencode
+from PIL import Image
+from cairosvg import svg2png
+from lxml import etree
 
 # Get creds please enter your creds in creds.txt
 
@@ -209,7 +212,6 @@ def spotify_authenticate():
     # Get the Spotify access token for authentication
     global spotify_token
     token = util.prompt_for_user_token(username, scope, client_id, client_secret, "https://www.google.com/")
-
     if token:
         spotify_token = token
     else:
@@ -324,6 +326,7 @@ def get_song_details(spotify_token, retry_delay=2, max_retries=3):
             artistName = item['album']['artists'][0].get('name')
             imageUrl = item['album']['images'][0].get('url')  # Using the first image (usually the largest)
             songId = item.get('id')
+            songLength = item.get('duration_ms')
 
 
             if not all([name, artistName, imageUrl, songId]):
@@ -331,7 +334,7 @@ def get_song_details(spotify_token, retry_delay=2, max_retries=3):
                 time.sleep(retry_delay)
                 continue
 
-            return name, status, imageUrl, artistName, songId
+            return name, status, imageUrl, artistName, songId, songLength
 
         except requests.exceptions.RequestException as e:
             print(f"Request failed: {e}. Retrying in {retry_delay} seconds...")
@@ -536,7 +539,7 @@ def generate_gradient_image(colors, display):
 
 
 
-def generate_text_image(songTitle, artistName, colors, display, positionX = 50, positionY = 50):
+def generate_text_image(songTitle, artistName, colors, display, positionX = 50, positionY = 50, centered=False):
     """
     Generate a text image with the song title and artist name.
     
@@ -568,7 +571,11 @@ def generate_text_image(songTitle, artistName, colors, display, positionX = 50, 
     #set the font
     myFont = ImageFont.truetype("./fonts/Rubik.ttf", 40)
     #draw the text
-    draw.text((positionX,positionY), (songTitle + "\n" + artistName), font = myFont, fill = (textColor[0],textColor[1],textColor[2]))
+    if not centered:
+        draw.text((positionX,positionY), (songTitle + "\n" + artistName), font = myFont, fill = (textColor[0],textColor[1],textColor[2]))
+    else:
+        draw.text((positionX,positionY), (songTitle + "\n" + artistName), font = myFont, fill = (textColor[0],textColor[1],textColor[2]), align="center")
+
     #save the text image
     return text
 
@@ -963,8 +970,117 @@ def waveform(song_id, display, imageUrl, artistName, songTitle):
 
     # Save the image
     final_image.save("ImageCache/finalImage.png")
+
+
+def fillWithSecondaryColor(color, width, height):
+    """
+    Modifies the fill color of specified paths in an SVG and converts it to PNG.
+
+    Args:
+        color: A tuple representing the desired color (RGB values).
+        width: The desired output image width.
+        height: The desired output image height.
+        svg_filename: The filename of the SVG file to modify.
+    """
+
+    with open("src/img/pause-button.svg", 'rb') as f:  # Open in binary mode
+        svg_data = f.read()
+
+    #open as xml file
+    svg = etree.fromstring(svg_data)
+
+    #find all the 'fill' attributes and change them to the hex value of the color
+    for element in svg.iter():
+        if 'fill' in element.attrib:
+            element.attrib['fill'] = f"#{color[0]:02x}{color[1]:02x}{color[2]:02x}"
+
+    #save the modified svg
+    with open("ImageCache/modified_pause-button.svg", 'wb') as f:
+        f.write(etree.tostring(svg))
+
+    #convert the svg to a png image
+    svg2png(url="ImageCache/modified_pause-button.svg", write_to="ImageCache/pause-button.png", output_width=width, output_height=height, background_color="transparent")
+
     
 
+
+
+def drawController(songID, display, imageUrl):
+    """
+    Generate a .png image with the album image, the song details, and a controller with play/pause buttons and a fake progress bar.
+
+    Args:
+        songID (str): The ID of the currently playing song.
+        display (tuple): The dimensions of the display.
+        imageUrl (str): The URL of the song's cover image.
+
+    Returns:
+        None: The generated image is saved to the 'ImageCache' directory.
+    """
+
+    #request to spotify to get the song details
+    song_details = get_song_details(spotify_token)
+    songTitle, status, imageUrl, artistName, songId, songLength = song_details
+    
+    #convert the song length to minutes and seconds
+    minutes = int(songLength / 60000)
+    seconds = int((songLength % 60000) / 1000)
+
+    #get the first color of the album image
+    backgroundColor = getColors(imageUrl)[0].rgb
+
+    print(int(display[0]), int(display[1]), backgroundColor)
+
+    displaySize = (int(display[0]), int(display[1]))
+
+    #create a new image with the dimensions of the display
+    controllerImage = Image.new('RGBA', displaySize, backgroundColor)
+
+    #create a draw object
+    draw = ImageDraw.Draw(controllerImage)
+
+    #set the font
+    myFont = ImageFont.truetype("./fonts/Rubik.ttf", 40)
+
+    #put the album image horizontally centered, 30% from the top
+    albumImage = setup_album_image(display, imageUrl)
+    controllerImage.paste(albumImage, (displaySize[0]//2 - albumImage.width//2, displaySize[1]//6))
+
+    fillWithSecondaryColor(getColors(imageUrl)[1].rgb, 200, 200)
+
+    #get the pause button image 
+    pauseButton = Image.open("ImageCache/pause-button.png").convert("RGBA")
+
+    #generate the text image just below the album image
+    text = generate_text_image(songTitle, artistName, getColors(imageUrl), display, centered=True)
+
+    #paste the text image just below the album image, horizontally centered
+    controllerImage.paste(text, (displaySize[0]//2 - text.width//10, displaySize[1]//6 + albumImage.height ), mask=text)
+    
+    #paste it horizontally centered, 60% from the top
+    controllerImage.paste(pauseButton, (displaySize[0]//2 - pauseButton.width//2, displaySize[1]//6 + albumImage.height + 250), mask=pauseButton)
+
+    #draw the progress bar, filled with the second color of the album image
+    draw.rectangle([displaySize[0]//6, displaySize[1]//6 + albumImage.height + 210, displaySize[0] - displaySize[0]//6 + 100, displaySize[1]//6 + albumImage.height + 215], fill=getColors(imageUrl)[1].rgb)
+
+    #choose a random progress for the progress bar
+    progress = random.randint(0, 100)
+    
+    #write the length of the song at the right of the progress bar
+    draw.text((displaySize[0] - displaySize[0]//6 + 120, displaySize[1]//6 + albumImage.height + 190), f"{minutes}:{seconds}", font=myFont, fill=getColors(imageUrl)[1].rgb)
+
+    #write 00:00 at the left of the progress bar
+    textOffset = (1, 1)  # Offset both horizontally and vertically
+
+    # Draw the text with a slight offset to create a thicker appearance
+    draw.text((displaySize[0]//6 - 120 + textOffset[0], displaySize[1]//6 + albumImage.height + 190 + textOffset[1]), "00:00", font=myFont, fill=(0, 0, 0))  # Draw black shadow
+    draw.text((displaySize[0]//6 - 120, displaySize[1]//6 + albumImage.height + 190), "00:00", font=myFont, fill=getColors(imageUrl)[1].rgb)  # Draw desired color on top
+
+    #TODO: add the "next" and "previous" buttons
+
+    #save the image
+    controllerImage.save("ImageCache/finalImage.png")
+  
 
 if __name__ == "__main__":
 
@@ -983,7 +1099,7 @@ if __name__ == "__main__":
                 time.sleep(5)  # Wait a bit before retrying
                 continue
 
-            songTitle, status, imageUrl, artistName, songId = song_details
+            songTitle, status, imageUrl, artistName, songId, songLength = song_details
 
             if status == "paused":
                 #restore the original wallpaper
@@ -1009,7 +1125,8 @@ if __name__ == "__main__":
                     f.close()
 
                 #choose randomly between the different modes, and generate the wallpaper
-                mode = random.choice(["gradient", "blurred", "waveform", "albumImage"])
+                mode = random.choice(["gradient", "blurred", "waveform", "albumImage", "controllerImage"])
+
 
                 if mode == "gradient":
                     gradient(songTitle, imageUrl, artistName)
@@ -1026,6 +1143,9 @@ if __name__ == "__main__":
                     
                 elif mode == "albumImage":
                     albumImage(display, songTitle, artistName, imageUrl)
+
+                elif mode == "controllerImage":
+                    drawController(songId, display, imageUrl)
 
                 #change the wallpaper                           
                 os.system(command + os.getcwd() + "/ImageCache/finalImage.png")
