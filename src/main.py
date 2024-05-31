@@ -539,7 +539,7 @@ def generate_gradient_image(colors, display):
 
 
 
-def generate_text_image(songTitle, artistName, colors, display, positionX = 50, positionY = 50, centered=False):
+def generate_text_image(songTitle, artistName, colors, display, positionX = 50, positionY = 50):
     """
     Generate a text image with the song title and artist name.
     
@@ -571,12 +571,46 @@ def generate_text_image(songTitle, artistName, colors, display, positionX = 50, 
     #set the font
     myFont = ImageFont.truetype("./fonts/Rubik.ttf", 40)
     #draw the text
-    if not centered:
-        draw.text((positionX,positionY), (songTitle + "\n" + artistName), font = myFont, fill = (textColor[0],textColor[1],textColor[2]))
-    else:
-        draw.text((positionX,positionY), (songTitle + "\n" + artistName), font = myFont, fill = (textColor[0],textColor[1],textColor[2]), align="center")
+    draw.text((positionX,positionY), (songTitle + "\n" + artistName), font = myFont, fill = (textColor[0],textColor[1],textColor[2]))
 
     #save the text image
+    return text
+
+
+def generate_centered_text_image(songTitle, artistName, colors, display):
+    """
+    Generate a text image with the song title and artist name, centered on the display.
+    
+    Args:
+        songTitle (str): The title of the currently playing song.
+        artistName (str): The name of the artist of the currently playing song.
+        colors (list): A list of two color objects.
+        display (tuple): The dimensions of the display.
+        
+    Returns:
+        Image: A new image with the song title and artist name, centered on the display."""
+    width = int(display[0])
+    height = int(display[1])
+    # Setup Text: check if the first color is too light or too dark
+    textColor = colors[0].rgb
+
+    #if the color is too light, make the text black, otherwise make it white
+    if (textColor[0]*0.299 + textColor[1]*0.587 + textColor[2]*0.114) > 186:
+        textColor = (int(0), int(0), int(0))
+    else:
+        textColor = (int(255), int(255), int(255))
+
+    #create a new image with the name of the song and the artist, and transparent background
+    text = Image.new('RGBA', (width, height), (0, 0, 0, 0))
+    #create a draw object
+    draw = ImageDraw.Draw(text)
+    #set the font
+    myFont = ImageFont.truetype("./fonts/Rubik.ttf", 40)
+    #draw the text in the center of the display
+    draw.text((int(width//2),int(height/2)), (songTitle + "\n" + artistName), font = myFont, fill = (textColor[0],textColor[1],textColor[2]), align="center")
+    #save the text image as 'text.png'
+    text.save('ImageCache/text.png')
+    
     return text
 
 def paste_and_save_album_image(bg, cover, display, text):
@@ -1029,8 +1063,6 @@ def drawController(songID, display, imageUrl):
     #get the first color of the album image
     backgroundColor = getColors(imageUrl)[0].rgb
 
-    print(int(display[0]), int(display[1]), backgroundColor)
-
     displaySize = (int(display[0]), int(display[1]))
 
     #create a new image with the dimensions of the display
@@ -1052,10 +1084,9 @@ def drawController(songID, display, imageUrl):
     pauseButton = Image.open("ImageCache/pause-button.png").convert("RGBA")
 
     #generate the text image just below the album image
-    text = generate_text_image(songTitle, artistName, getColors(imageUrl), display, centered=True)
-
+    text = generate_centered_text_image(songTitle, artistName, getColors(imageUrl), display)
     #paste the text image just below the album image, horizontally centered
-    controllerImage.paste(text, (displaySize[0]//2 - text.width//10, displaySize[1]//6 + albumImage.height ), mask=text)
+    controllerImage.paste(text, mask=text)
     
     #paste it horizontally centered, 60% from the top
     controllerImage.paste(pauseButton, (displaySize[0]//2 - pauseButton.width//2, displaySize[1]//6 + albumImage.height + 250), mask=pauseButton)
@@ -1066,9 +1097,8 @@ def drawController(songID, display, imageUrl):
     #choose a random progress for the progress bar
     progress = random.randint(0, 100)
     
-    #write the length of the song at the right of the progress bar
-    draw.text((displaySize[0] - displaySize[0]//6 + 120, displaySize[1]//6 + albumImage.height + 190), f"{minutes}:{seconds}", font=myFont, fill=getColors(imageUrl)[1].rgb)
-
+    #write the length of the song at the right of the progress bar using two digits for the seconds, adding a 0 if the seconds are less than 10
+    draw.text((displaySize[0] - displaySize[0]//6 + 100, displaySize[1]//6 + albumImage.height + 190), f"{minutes}:{seconds if seconds > 9 else '0' + str(seconds)}", font=myFont, fill=(0, 0, 0))
     #write 00:00 at the left of the progress bar
     textOffset = (1, 1)  # Offset both horizontally and vertically
 
