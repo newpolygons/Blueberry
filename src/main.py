@@ -4,7 +4,7 @@ import time as t
 import spotipy.util as util
 from spotipy.oauth2 import SpotifyOAuth
 import mac, linux, imageManip
-# Get creds please enter your creds in creds.txt
+# Get creds please enter your creds in creds.txt at path /Blueberry/creds.txt
 
 global spotify_token, client_id, client_secret, username, display
 client_id = ""
