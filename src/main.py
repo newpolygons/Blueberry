@@ -1,4 +1,6 @@
 import io
+import sys
+import threading
 import requests, colorgram, os, platform
 import time
 import spotipy.util as util
@@ -14,7 +16,7 @@ from lxml import etree
 
 # Get creds please enter your creds in creds.txt
 
-global spotify_token, client_id, client_secret, username, display, original_wallpaper, command, mode, environment
+global spotify_token, client_id, client_secret, username, display, original_wallpaper, command, modes, environment
 client_id = ""
 client_secret = ""
 spotify_token = ""
@@ -23,6 +25,7 @@ scope = "user-read-currently-playing"
 display = ""
 cacheOn = True
 environment = ''
+modes = ["gradient", "blurred", "waveform", "albumImage", "controllerImage"]
 #set up an array of available environments and commando to test
 availableEnvironment = [
     {'envName': 'gnome',
@@ -369,7 +372,7 @@ def create_color_background(baseWidth, baseHeight, colors):
 
     return background
 
-def albumImage(display, songTitle, songArtist, imageUrl):
+def albumImage(display, songTitle, artistName, imageUrl):
     """
     Generate a wallpaper based on the album image and song details.
     
@@ -682,7 +685,8 @@ def find_darkest_color(colors):
 
 def generate_gradient_from_center(colors, display, albumImageWidth):
     """
-    Generate a gradient image with the colors of the album image, from the center to the edges.
+    Generate a gradient image with the colors of the album image, from t    header = {"Authorization": f"Bearer {spotify_token}"}
+    url = "https://api.spotify.com/v1/me/player/currently-playing"he center to the edges.
     
     Args:
         colors (list): A list of two color objects.
@@ -1112,88 +1116,176 @@ def drawController(songID, display, imageUrl):
 
     #save the image
     controllerImage.save("ImageCache/finalImage.png")
-  
 
-if __name__ == "__main__":
+
+def changeWallpaper():
+    """
+    Change the wallpaper based on the currently playing song.
+    """
+
+    prev_status = ''
+
+    while True:
+
+        #check if the song has been paused
+        song_details = get_song_details(spotify_token)
+        if song_details is None:
+            print("Failed to retrieve song details. Trying again...")
+            time.sleep(5)  # Wait a bit before retrying
+            continue
+        songTitle, status, imageUrl, artistName, songId, songLength = song_details
+        
+        if status == "paused":
+            #restore the original wallpaper
+            os.system(command + str(original_wallpaper))
+            time.sleep(5)
+            prev_status = "paused"
+            continue
+        if status == "playing" and prev_status == "paused":
+            #if the song has been paused and then resumed, change the wallpaper
+            prev_status = "playing"
+            os.system(command + os.getcwd() + "/ImageCache/finalImage.png")
+            time.sleep(5)
+            continue
+        if songId != checkSong():
+            # Download the image and get its local path
+            download_image(imageUrl)
+            #change the song title in the file
+            with open("src/songCheck.txt", "w") as f:
+                f.write(songId)
+                f.close()
+            #choose randomly between the different modes, and generate the wallpaper
+            mode = random.choice(modes)
+            if mode == "gradient":
+                gradient(songTitle, imageUrl, artistName)
+            elif mode == "blurred":
+                if blurred(imageUrl, display) == False:
+                    # If the blurred background fails, retry the entire process
+                    resetSong()
+                    continue
+            elif mode == "waveform":
+                waveform(songId, display, imageUrl, artistName, songTitle)
+            elif mode == "albumImage":
+                albumImage(display, songTitle, artistName, imageUrl)
+            elif mode == "controllerImage":
+                drawController(songId, display, imageUrl)
+            #change the wallpaper                           
+            os.system(command + os.getcwd() + "/ImageCache/finalImage.png")
+        time.sleep(1)  
+    
+
+def modify_modes():
+    """
+    Modify the modes to be used for generating wallpapers.
+    """
+    #global variable to store the modes
+    global modes
+    os.system("clear")
+    print("Modes available:")
+    print("  1. Gradient")
+    print("  2. Blurred")
+    print("  3. Waveform")
+    print("  4. Album Image")
+    print("  5. Controller Image")
+    print("  6. All")
+
+    m = input("Enter the mode you want to enable, separated by commas: ")
+    modes = []
+
+    for i in m.split(","):
+        if i == "1":
+            modes.append("gradient")
+        elif i == "2":
+            modes.append("blurred")
+        elif i == "3":
+            modes.append("waveform")
+        elif i == "4":
+            modes.append("albumImage")
+        elif i == "5":
+            modes.append("controllerImage")
+        elif i == "6":
+            modes = ["gradient", "blurred", "waveform", "albumImage", "controllerImage"]
+        else:
+            print("Invalid mode.")
+            continue
+    input("Modes updated. Press Enter to continue...")
+    
+def cli():
+    """
+    Command Line Interface for the SpotifySyncWall program.
+    
+    The CLI allows the user to change the settings and exit the program.
+    """
+    while True:
+        #clear the screen
+        os.system("clear")
+
+        print("Welcome to the SpotifySyncWall CLI!")
+        print("Type 'help' for a list of commands. \n")
+
+        command = input("Enter a command: ")
+        print()
+
+        if command == "help":
+            print("Commands:")
+            print("   help - Display a list of commands.")
+            print("   exit - Exit the program.")
+            print("   settings - Change the settings.")
+
+            #wait for the user to press enter
+            input("\nPress Enter to continue...")
+            continue
+
+        if command == "exit":
+            print("Exiting the program...")
+            raise KeyboardInterrupt
+        if command == "settings":
+            print("Settings:")
+            print("  1. Choose which modes to use.")
+
+            setting = input("\nEnter a setting: ")
+
+            if setting == "1":
+                modify_modes()
+            else:
+                print("Invalid setting.")
+                continue
+
+
+
+
+        
+        
+
+
+
+if __name__ == "__main__":    #when the program is stopped, change the wallpaper back to the original one
+
+
+    #start with initializations
+    init()
+    #launch a thread that will change the wallpaper
+    wallpaperThread = threading.Thread(target=changeWallpaper)
+    wallpaperThread.start()
+
+    #launch the thread for the CLI interface
+    cliThread = threading.Thread(target=cli)
+    cliThread.start()
 
     try:
+        cliThread.join()
+    
+    except:
+        print("Program interrupted. Restoring wallpaper...")
 
-        #start with initializations
-        init()
-        prev_status = ''
-        while True:
-
-            #check if the song has been paused
-            song_details = get_song_details(spotify_token)
-
-            if song_details is None:
-                print("Failed to retrieve song details. Trying again...")
-                time.sleep(5)  # Wait a bit before retrying
-                continue
-
-            songTitle, status, imageUrl, artistName, songId, songLength = song_details
-
-            if status == "paused":
-                #restore the original wallpaper
-                os.system(command + str(original_wallpaper))
-                time.sleep(5)
-                prev_status = "paused"
-                continue
-
-            if status == "playing" and prev_status == "paused":
-                #if the song has been paused and then resumed, change the wallpaper
-                prev_status = "playing"
-                os.system(command + os.getcwd() + "/ImageCache/finalImage.png")
-                time.sleep(5)
-                continue
-
-            if songId != checkSong():
-                # Download the image and get its local path
-                download_image(imageUrl)
-
-                #change the song title in the file
-                with open("src/songCheck.txt", "w") as f:
-                    f.write(songId)
-                    f.close()
-
-                #choose randomly between the different modes, and generate the wallpaper
-                mode = random.choice(["gradient", "blurred", "waveform", "albumImage", "controllerImage"])
-
-
-                if mode == "gradient":
-                    gradient(songTitle, imageUrl, artistName)
-
-                elif mode == "blurred":
-                    if blurred(imageUrl, display) == False:
-                        # If the blurred background fails, retry the entire process
-                        resetSong()
-                        continue
-
-                elif mode == "waveform":
-                    waveform(songId, display, imageUrl, artistName, songTitle)
-
-                    
-                elif mode == "albumImage":
-                    albumImage(display, songTitle, artistName, imageUrl)
-
-                elif mode == "controllerImage":
-                    drawController(songId, display, imageUrl)
-
-                #change the wallpaper                           
-                os.system(command + os.getcwd() + "/ImageCache/finalImage.png")
-
-            time.sleep(5)
-
-    except KeyboardInterrupt:
-        #when the program is stopped, change the wallpaper back to the original one
+        stop_wallpaper_thread = True
         os.system(command + str(original_wallpaper))
-        #clear songCheck.txt so that the next time the program is run, it will change the wallpaper
         with open("src/songCheck.txt", "w") as f:
             f.write("")
             f.close()
-    #if the program is stopped with any other method, change the wallpaper back to the original one
-    except:
-        os.system(command + str(original_wallpaper))
-        #clear songCheck.txt so that the next time the program is run, it will change the wallpaper
-        resetSong()
-        raise
+        print("Wallpaper restored.")
+        
+        pid = os.getpid()
+        os.system(f"kill -9 {pid}")
+
+
