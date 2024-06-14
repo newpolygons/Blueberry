@@ -58,9 +58,9 @@ spot_username = your_spotify_username
 
 ### Short term
 
-- [ ] Find a better way to check if colors are too similar
-- [ ] Function that choose which color use as second one in each mode, based on some magic *distance* between colors
-- [ ] Find a better way to leveling levels of loudness in waveform mode, so peaks are not too high compared to the rest of the image
+- [ ] ~~Find a better way to check if colors are too similar~~
+- [ ] ~~Function that choose which color use as second one in each mode, based on some magic *distance* between colors~~
+- [ ] ~~Find a better way to leveling levels of loudness in waveform mode, so peaks are not too high compared to the rest of the image~~
 - [ ] Add new fonts
 
 ### Medium term

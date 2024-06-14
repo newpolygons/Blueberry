@@ -1,5 +1,4 @@
 import io
-from types import ClassMethodDescriptorType
 import requests, colorgram, os, platform
 import time
 import spotipy.util as util
@@ -203,7 +202,7 @@ def  init():
 
 
 
-
+# to refactor without using spotipy library
 def spotify_authenticate():
     """
     Authenticate with the Spotify API using the credentials from the creds.txt file.
@@ -1055,8 +1054,7 @@ def drawController(songID, display, imageUrl):
     """
 
     #request to spotify to get the song details
-    song_details = get_song_details(spotify_token)
-    songTitle, status, imageUrl, artistName, songId, songLength = song_details
+    songTitle, _, imageUrl, artistName, _, songLength = get_song_details(spotify_token)
     
     #convert the song length to minutes and seconds
     minutes = int(songLength / 60000)
