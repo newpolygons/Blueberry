@@ -1184,7 +1184,11 @@ def modify_modes():
     m = input("Enter the mode you want to enable, separated by commas: ")
     modes = []
 
+    #remove any spaces
+    m = m.replace(" ", "")
+    
     for i in m.split(","):
+
         if i == "1":
             modes.append("gradient")
         elif i == "2":
