@@ -1,12 +1,12 @@
 # SpotifySyncWall
 
- Currently Playing Spotify Song As Wallpaper for Gnome Desktop
+ Currently Playing Spotify Song As Wallpaper **only for Gnome Desktop**
 
- Once you stop the script, the wallpaper will be reset to the default one
+ Once you stop the script, the wallpaper will be reset to the default one.
 
 ## Images
 
-There are 4 modes: Album Cover, Gradient, Blurred and Waveform. If you want to use only one of them, you can comment the others in `main.py`, on `__main__`function.
+There are 5 modes: Album Cover, Gradient (up-down and center-out), Blurred, Waveform and Controller. From now, you can choose which one to use by setting them using the `settings` command in the CLI. Here are some examples:
 
 ![Album Cover mode](src/img/AlbumCover.png)
 
@@ -17,6 +17,8 @@ There are 4 modes: Album Cover, Gradient, Blurred and Waveform. If you want to u
 ![Waveform mode](src/img/Waveform.png)
 
 ![Gradient mode from the center](src/img/centeredGradient.png)
+
+![Controller mode](src/img/controller.png)
 
 ## Usage
 
@@ -52,7 +54,7 @@ spot_username = your_spotify_username
 
 ### Note on display dimension
 
- Script automatically retrieve display dimension, using the first available in `xrandr`: if you want to use a custom one, change the second index in line 73, or decomment the following line and add your favorite resolution, following the already written pattern.
+ Script automatically retrieve display dimension, using the first available in `xrandr`: if you want to use a custom one, change the second index in line 73, or removing the comment that line and adding your favorite resolution, following the already written pattern.
 
 ## TODO
 
@@ -66,10 +68,13 @@ spot_username = your_spotify_username
 ### Medium term
 
 - [ ] Add new modes
-- [ ] Let user choose some parameters (ex. colors, gradient direction, etc.) without editing the code or stop the script
+- [ ] Let user choose some parameters (ex. colors, gradient direction, etc.) without editing the code or stop the script (WIP)
+- [ ] Implement an actual control of the music, so you can pause, skip, etc. directly from the CLI
 
 ### Long term
 
 - [ ] General optimization of the code
 - [ ] Add a GUI (too far from now, I think)
 - [ ] Compatibility with other desktop environments (same as above)
+- [ ] Convert the script in a GNOME extension
+- [ ] Mobile version for Android
