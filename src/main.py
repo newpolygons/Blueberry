@@ -182,7 +182,6 @@ def  init():
     #check if 'src/songCheck.txt' exists, if not create it
     if not os.path.exists("src/songCheck.txt"):
         f = open("src/songCheck.txt", "w")
-        f.write("")
         f.close()
 
     #check if 'ImageCache' directory exists, if not create it
@@ -312,13 +311,13 @@ def get_song_details(spotify_token, retry_delay=2, max_retries=3):
             
             if status == 429:
                 retry_after = int(response.headers.get('Retry-After', retry_delay))
-                print(f"Rate limited. Retrying in {retry_after} seconds...")
+                print(f"\nRate limited. Retrying in {retry_after} seconds...")
                 time.sleep(retry_after)
                 continue
 
             # Check if the response has the necessary information
             if 'item' not in song_content or not song_content['item']:
-                print("No song information found. Retrying...")
+                #print("No song information found. Retrying...")
                 time.sleep(retry_delay)
                 continue
 
@@ -339,11 +338,11 @@ def get_song_details(spotify_token, retry_delay=2, max_retries=3):
             return name, status, imageUrl, artistName, songId, songLength
 
         except requests.exceptions.RequestException as e:
-            print(f"Request failed: {e}. Retrying in {retry_delay} seconds...")
+            #print(f"Request failed: {e}. Retrying in {retry_delay} seconds...")
              
             time.sleep(retry_delay)
         except KeyError as e:
-            print(f"Missing expected data: {e}. Retrying...")
+            #print(f"Missing expected data: {e}. Retrying...")
             time.sleep(retry_delay)  
 
     print("Maximum retries reached. Exiting function.")
@@ -406,8 +405,7 @@ def calculate_relative_luminance(color):
     r, g, b = color.rgb
 
     # Calculate relative luminance using the specified formula
-    luminance = 0.2126 * r + 0.7152 * g + 0.0722 * b
-    return luminance
+    return 0.2126 * r + 0.7152 * g + 0.0722 * b
 
 def calculate_contrast_ratio(color1, color2):
     # Calculate relative luminance for both colors
@@ -419,8 +417,7 @@ def calculate_contrast_ratio(color1, color2):
         luminance1, luminance2 = luminance2, luminance1
 
     # Calculate contrast ratio with "+ 0.05" for adjustment
-    contrast_ratio = (luminance1 + 0.05) / (luminance2 + 0.05)
-    return contrast_ratio
+    return (luminance1 + 0.05) / (luminance2 + 0.05)
 
 def getColors(imageUrl):
     """
@@ -497,7 +494,6 @@ def setup_album_image(display, imageUrl):
         Image: The album image, resized and saved to the 'ImageCache' directory.
         """
     width = int(int(display[0]) / 5)
-    height = int(int(display[1]) / 2)
 
     image = get_image_from_cache(imageUrl)
     image = Image.open(io.BytesIO(image))
@@ -505,7 +501,6 @@ def setup_album_image(display, imageUrl):
     wpercent = (width/float(image.size[0]))
     hsize = int((float(image.size[1])*float(wpercent)))
     image = image.resize((width,hsize), Image.LANCZOS)
-    image.save('ImageCache/albumImage.png')
     return image
 
 
@@ -518,7 +513,8 @@ def generate_gradient_image(colors, display):
         display (tuple): The dimensions of the display.
         
     Returns:
-        Image: A gradient image with the colors of the album image."""
+        Image: A gradient image with the colors of the album image.
+    """
     # Create a gradient image with the colors of the album image
     width = int(display[0])
     height = int(display[1])
@@ -613,7 +609,6 @@ def generate_centered_text_image(songTitle, artistName, colors, display):
     #save the text image as 'text.png'
 
     cropped = text.crop(text.getbbox())
-    cropped.save('ImageCache/text.png')
     
     return cropped
 
@@ -640,7 +635,6 @@ def paste_and_save_album_image(bg, cover, display, text):
     background.paste(text, (0, 0), mask = text)
     background.save("ImageCache/finalImage.png")
 
-    return background
 
 
 def calculate_gradient_color(radius, startRadius, endRadius, colors):
@@ -751,9 +745,8 @@ def gradient(songTitle, imageUrl, artistName):
     albumImageWidth = image.width
 
     #choose randomly from standard or from center to the edges
-    choice = random.choice([True, False])
 
-    if choice:
+    if random.choice([True, False]):
         # Create a gradient image with the colors of the album image, starting from the top to the bottom
         gradient = generate_gradient_image(getColors(imageUrl), display)
         text = generate_text_image(songTitle, artistName, getColors(imageUrl), display)
@@ -881,10 +874,6 @@ def get_audio_analysis(song_id):
     }
     response = requests.get(url, headers=headers)
     if response.status_code == 200:
-        #save the audio analysis in a file
-        with open("src/audioAnalysis.json", "w") as f:
-            f.write(json.dumps(response.json()))
-            f.close()
         return response.json()
     else:
 
@@ -1044,7 +1033,7 @@ def fillWithSecondaryColor(color, width, height):
 
 
 
-def drawController(songID, display, imageUrl):
+def drawController(songDetails, display, imageUrl):
     """
     Generate a .png image with the album image, the song details, and a controller with play/pause buttons and a fake progress bar.
 
@@ -1058,7 +1047,7 @@ def drawController(songID, display, imageUrl):
     """
 
     #request to spotify to get the song details
-    songTitle, _, imageUrl, artistName, _, songLength = get_song_details(spotify_token)
+    songTitle, _, imageUrl, artistName, _, songLength = songDetails
     
     #convert the song length to minutes and seconds
     minutes = int(songLength / 60000)
@@ -1125,8 +1114,10 @@ def changeWallpaper():
 
     prev_status = ''
 
-    while True:
+    oldModes = modes
 
+    while True:
+        
         #check if the song has been paused
         song_details = get_song_details(spotify_token)
         if song_details is None:
@@ -1147,7 +1138,8 @@ def changeWallpaper():
             os.system(command + os.getcwd() + "/ImageCache/finalImage.png")
             time.sleep(5)
             continue
-        if songId != checkSong():
+        if songId != checkSong() or modes != oldModes:
+            oldModes = modes
             # Download the image and get its local path
             download_image(imageUrl)
             #change the song title in the file
@@ -1168,7 +1160,7 @@ def changeWallpaper():
             elif mode == "albumImage":
                 albumImage(display, songTitle, artistName, imageUrl)
             elif mode == "controllerImage":
-                drawController(songId, display, imageUrl)
+                drawController(song_details, display, imageUrl)
             #change the wallpaper                           
             os.system(command + os.getcwd() + "/ImageCache/finalImage.png")
         time.sleep(1)  
@@ -1238,7 +1230,7 @@ def cli():
 
         if command == "exit":
             print("Exiting the program...")
-            raise KeyboardInterrupt
+            exit()
         if command == "settings":
             print("Settings:")
             print("  1. Choose which modes to use.")
@@ -1251,41 +1243,27 @@ def cli():
                 print("Invalid setting.")
                 continue
 
-
-
-
-        
-        
-
-
-
-if __name__ == "__main__":    #when the program is stopped, change the wallpaper back to the original one
-
-
-    #start with initializations
-    init()
-    #launch a thread that will change the wallpaper
-    wallpaperThread = threading.Thread(target=changeWallpaper)
-    wallpaperThread.start()
-
-    #launch the thread for the CLI interface
-    cliThread = threading.Thread(target=cli)
-    cliThread.start()
-
+if __name__ == "__main__":
     try:
-        cliThread.join()
-    
-    except:
-        print("Program interrupted. Restoring wallpaper...")
+        #start with initializations
+        init()
+        #launch a thread that will change the wallpaper
+        wallpaperThread = threading.Thread(target=changeWallpaper)
+        wallpaperThread.start()
 
-        stop_wallpaper_thread = True
+        #launch the thread for the CLI interface
+        cliThread = threading.Thread(target=cli)
+        cliThread.start()
+
+        cliThread.join()
+
+        raise KeyboardInterrupt
+    
+    except KeyboardInterrupt:
+
         os.system(command + str(original_wallpaper))
-        with open("src/songCheck.txt", "w") as f:
-            f.write("")
-            f.close()
+        resetSong()
         print("Wallpaper restored.")
         
         pid = os.getpid()
         os.system(f"kill -9 {pid}")
-
-
