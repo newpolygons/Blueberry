@@ -1,9 +1,16 @@
 from types import ClassMethodDescriptorType
+from spotipy.oauth2 import SpotifyOAuth
 import requests, os, platform
 import time as t
 import spotipy.util as util
-from spotipy.oauth2 import SpotifyOAuth
-import mac, linux, imageManip
+import eel, pickle, json, requests
+import imageManip
+
+if (platform.system() == "Darwin"):
+    import mac
+
+if (platform.system() == 'Linux'):
+    import linux
 # Get creds please enter your creds in creds.txt at path /Blueberry/creds.txt
 
 global spotify_token, client_id, client_secret, username, display
@@ -35,6 +42,9 @@ def main():
         display = datadict["display_size"]
         display = display.split("x")
     
+    #eel.init('web')
+    #eel.start('main.html', size=(int(display[0])/3, int(display[0])/3), mode='chrome')
+
     spotify_authenticate()
 
     get_song_id()
@@ -112,6 +122,8 @@ def checkSong():
 
 
 main()
+
+
 
 while 1:
     songInformation = get_song_id()

@@ -1,0 +1,32 @@
+@font-face {
+    font-family: "CreamCake";
+    src: url("CreamCake.otf");
+}
+
+body {
+    background-color: white;
+}
+
+.roundedIcon {
+  display: block;
+  border-radius: 25px;
+  padding: 10px;
+  width: 25%;
+  height: 25%; 
+  margin-left: auto;
+  margin-right: auto;
+
+}
+
+h1 {
+    text-align: center;
+    font-family: "CreamCake";
+    font-weight: lighter;
+    font-size: 60px;
+}
+
+h3 {
+    font-size: 30;
+    text-align: center;
+}
+

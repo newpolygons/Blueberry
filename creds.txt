@@ -4,4 +4,3 @@ client_secret =
 spot_username = 
 display_size = 2560x1440
 mode = gradient
-

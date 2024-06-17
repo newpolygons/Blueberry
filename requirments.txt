@@ -1,8 +1,7 @@
 colorgram.py
 spotipy
 pillow
-appscript
-pyobjc
+appscript; sys_platform == 'darwin'
+pyobjc; sys_platform == 'darwin'
 numpy
 eel
-screeninfo
