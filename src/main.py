@@ -3,7 +3,7 @@ from spotipy.oauth2 import SpotifyOAuth
 import requests, os, platform
 import time as t
 import spotipy.util as util
-import eel, pickle, json, requests
+import pickle, json, requests
 import imageManip
 
 if (platform.system() == "Darwin"):
@@ -42,8 +42,7 @@ def main():
         display = datadict["display_size"]
         display = display.split("x")
     
-    #eel.init('web')
-    #eel.start('main.html', size=(int(display[0])/3, int(display[0])/3), mode='chrome')
+    
 
     spotify_authenticate()
 
