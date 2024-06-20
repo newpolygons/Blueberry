@@ -1124,7 +1124,7 @@ def changeWallpaper():
             print("Failed to retrieve song details. Trying again...")
             time.sleep(5)  # Wait a bit before retrying
             continue
-        songTitle, status, imageUrl, artistName, songId, songLength = song_details
+        songTitle, status, imageUrl, artistName, songId, _ = song_details
         
         if status == "paused":
             #restore the original wallpaper
