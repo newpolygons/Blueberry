@@ -1,105 +1,106 @@
-from types import ClassMethodDescriptorType
-from spotipy.oauth2 import SpotifyOAuth
-import requests, os, platform
+import requests
+import os 
+import platform 
+import glob
+import spotipy
 import time as t
-import spotipy.util as util
-import pickle, json, requests
 import imageManip
+from rich import print
 
 if (platform.system() == "Darwin"):
     import mac
 
 if (platform.system() == 'Linux'):
     import linux
-# Get creds please enter your creds in creds.txt at path /Blueberry/creds.txt
 
-global spotify_token, client_id, client_secret, username, display
-client_id = ""
-client_secret = ""
-spotify_token = ""
-username = ""
-scope = "user-read-currently-playing"
+# Get creds please enter your creds in creds.txt at path /Blueberry/creds.txt
 display = ""
 mode = ""
-counter = 0
 
 def main():
+    datadict = get_variables()
     if (platform.system() == "Darwin"):
         mac.backupWallpaper()
-        resolution = mac.getScreenResolution()
-    datadict = get_variables()
-    global client_secret, colors, client_id, username, display, mode
-    client_id = datadict["client_id"]
-    client_secret = datadict["client_secret"]
-    username = datadict["spot_username"]
-    mode = datadict["mode"]
-    
-    # Begin work to auto collect display resolution will be perminitly changed after Linux Testing
-    if (platform.system() == "Darwin"):
-        display = resolution
-        display = display.split("x")
+        display = mac.getScreenResolution()
+        print("[green]Display Resolution: [/green]" + display)
     else:
         display = datadict["display_size"]
-        display = display.split("x")
-    
-    
+        print("[green]Display Resolution: [/green]" + display)
+    mode = datadict["mode"]
+    print("[green]Selected Mode: [/green]" + mode)
+
+    # Begin work to auto collect display resolution will be perminitly changed after Linux Testing
+
+    display = display.split("x")
 
     spotify_authenticate()
 
-    get_song_id()
+    while 1:
+        songInformation = get_song_id()
+        songTitle = imageManip.albumImage(mode, songInformation, display)
+
+        if songTitle != checkSong():
+            f = open("src/songCheck.txt", "w")
+            f.write(songTitle)
+            f.close()
+            if (platform.system() == 'Linux'):
+                linux.applyWallpaperLinux()
+                t.sleep(1)
+            elif (platform.system() == 'Darwin'):
+                mac.applyWallpaperMac()
+            print(":sound:Current Song: " + songInformation[1] + " - "  + songInformation[2])
+        else:
+            print(":zzz:[blue]Song hasnt changed yet going to sleep...[/blue]")
+            t.sleep(5)
+    
 
 
 def spotify_authenticate():
+    #If you want to use your own Spotify application change client_id here.
+    client_id = "2a487b56eba34dbdb32c7109f6292b9c"
+    redirect_uri = "http://127.0.0.1:8080"
+    auth_manager = spotipy.oauth2.SpotifyPKCE(scope='user-read-currently-playing', client_id = client_id,
+                                               redirect_uri = redirect_uri)
     global spotify_token
-    token = util.prompt_for_user_token(username, scope, client_id, client_secret, "https://www.google.com/")
-    if token:
-        spotify_token = token
-    else:
-        print("Couldn't get proper Spotify authentication")
-        exit()
-
+    spotify_token = spotipy.Spotify(auth_manager.get_access_token())
+    
 
 def get_song_id():
-    header = {
-        "Authorization": "Bearer {}".format(spotify_token)
-    }
-    get_id = requests.get("https://api.spotify.com/v1/me/player/currently-playing", headers=header)
+    songINFO = spotify_token.current_user_playing_track()
     try:
-        song_content = get_id.json()
+        song_content = songINFO
         id = song_content['item']['id']
         if not id:
             t.sleep(2)
             get_song_id()
         
-        
-        
         name = song_content['item']['name']    
         artistName = song_content['item']['album']['artists'][0]['name']
         imageUrl = song_content['item']['album']['images'][0]['url']         
         imageRequest = requests.get(str(imageUrl))
-        file = open("../ImageCache/newCover.png", "wb")
+        file = open("ImageCache/newCover.png", "wb")
         file.write(imageRequest.content)
         file.close()
         return [id, name, artistName]
     except KeyError:
+        print("[bold red]KEY ERROR, attempting to reauthenticate![/bold red]")
         spotify_authenticate()
-        get_song_id()
+        
     except TypeError:
-        print("Spotify Error: make sure valid song is playing")
-        print("Waiting for valid song to be played.")
+        print("[bold red]Spotify Error: make sure valid song is playing[/bold red]")
+        print("[/yellow]:yawning_face:Waiting for valid song to be played.[/yellow]")
         t.sleep(5)
         get_song_id()
     except ValueError:
-        print("Error: looks like no song is playing")
-        print("Waiting for song to be played.")
+        print("[bold red]Error: looks like no song is playing[/bold red]")
+        print("[/yellow]:yawning_face:Waiting for valid song to be played.[/yellow]")
         t.sleep(5)
         get_song_id()
-
 
 
 def get_variables():
     dicti = {}
-    with open('../creds.txt', 'r') as file:
+    with open('creds.txt', 'r') as file:
         content = file.readlines()
         for line in content:
             if "=" in line:
@@ -112,32 +113,26 @@ def get_variables():
         return dicti
 
 
-
 def checkSong():
-    f = open("songCheck.txt", "r")
+    f = open("src/songCheck.txt", "r")
     song = f.read()
     f.close()
     return song
 
 
-main()
+def removeImageCache():
+    files = glob.glob('ImageCache/*')
+    for f in files:
+        try:
+            os.remove(f)
+        except:
+            pass
 
 
 
-while 1:
-    songInformation = get_song_id()
-    songTitle = imageManip.albumImage(mode, songInformation, display)
 
-    if songTitle != checkSong():
-        f = open("songCheck.txt", "w")
-        f.write(songTitle)
-        f.close()
-        if (platform.system() == 'Linux'):
-            linux.applyWallpaperLinux()
-        elif (platform.system() == 'Darwin'):
-            mac.applyWallpaperMac()
-        
 
-    counter = counter + 1
-    t.sleep(5)
+
+
+
 

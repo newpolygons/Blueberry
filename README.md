@@ -1,5 +1,5 @@
 # Blueberry
- Currently Playing Spotify Song As Wallpaper for Gnome and inital support for MacOS
+ Currently Playing Spotify Song As Wallpaper for Gnome and MacOS
  
  
 
@@ -22,14 +22,12 @@
 
 # Usage
 
-1. Download the repo 
-2. Start listening to music on Spotify
-3. Enter your spotify credentials in the txt file
-4. Run commands in requirments.txt
-5. Run the main.py file
-6. Log in if web page comes up
-7. Copy link of web page after signing in and paste into teminal
-8. Profit?
+1. Clone the repository
+2. Create a virtual env in the main directory of the application. (python3 -m venv env)
+3. Activate the env (source env/bin/activate)
+4. Install requirements (pip3 install -r requirements.txt)
+5. Run the application (python3 app.py)
+
 
 # Fixing Permission Denied Mac
 

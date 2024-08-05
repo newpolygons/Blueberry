@@ -1,6 +1,7 @@
-from PIL import Image, ImageDraw, ImageFont
 import colorgram
 import numpy as np
+from PIL import Image, ImageDraw, ImageFont
+
 
 def albumImage(mode, songInformation, display):
     try:
@@ -14,14 +15,14 @@ def albumImage(mode, songInformation, display):
     
     baseWidth = int(display[0])
     baseHeight = int(display[1])
-    image = Image.open("../ImageCache/newCover.png")
+    image = Image.open("ImageCache/newCover.png")
     wpercent = (width/float(image.size[0]))
     hsize = int((float(image.size[1])*float(wpercent)))
     image = image.resize((width,hsize), Image.LANCZOS)
     #Adding rounded corners and drop shadow to images
     
     image = add_corners(image, 20)
-    image.save('../ImageCache/newCover.png')
+    image.save('ImageCache/newCover.png')
     
     if (mode == 'block'):
         blockMode(baseWidth, baseHeight, songTitle, songArtist, width, height, image)
@@ -34,7 +35,7 @@ def albumImage(mode, songInformation, display):
 
 def getColors():
 #Setup Background Colors
-    colors = colorgram.extract('../ImageCache/newCover.png', 2)
+    colors = colorgram.extract('ImageCache/newCover.png', 2)
     if len(colors) < 2:
         firstColor = colors[0]
         secondColor = colors[0]
@@ -81,12 +82,12 @@ def blockMode(baseWidth, baseHeight, songTitle, songArtist, width, height, image
     colorImageOne = Image.new('RGB', (baseWidth, int(baseHeight / 2)), (colors[0].rgb))
     titleArtist = ImageDraw.Draw(colorImageOne)
 
-    myFont = ImageFont.truetype("../fonts/CreamCake.otf", 60)#40)
+    myFont = ImageFont.truetype("fonts/CreamCake.otf", 60)#40)
     titleArtist.text((50,50), (songTitle + "\n" + songArtist), font = myFont, fill = (colors[1].rgb))
-    colorImageOne.save('../ImageCache/firstColor.png')
+    colorImageOne.save('ImageCache/firstColor.png')
 
     colorImageTwo = Image.new('RGB', (baseWidth, int(baseHeight / 2)), (colors[1].rgb))
-    colorImageTwo.save('../ImageCache/secondColor.png')
+    colorImageTwo.save('ImageCache/secondColor.png')
 
 
     #Combine Images
@@ -94,13 +95,13 @@ def blockMode(baseWidth, baseHeight, songTitle, songArtist, width, height, image
     background = Image.new('RGB', (colorImageOne.width, colorImageOne.height + colorImageTwo.height))
     background.paste(colorImageOne, (0, 0))
     background.paste(colorImageTwo, (0, colorImageOne.height))
-    background.save('../ImageCache/background.png')
+    background.save('ImageCache/background.png')
 
     
     
     finalImage = Image.new('RGB', (width, height))
     background.paste(image, ((int(background.width/2) - int(image.width / 2)), int((background.height/2) - int(image.height / 2))), image)
-    background.save("../ImageCache/finalImage.png")
+    background.save("ImageCache/finalImage.png")
 
 
 
@@ -111,13 +112,13 @@ def gradientMode(baseWidth, baseHeight, songTitle, songArtist, width, height, im
     secondColor = colors[1].rgb
 
     array = get_gradient_3d(baseWidth, baseHeight, firstColor, secondColor, (False, False, False))
-    Image.fromarray(np.uint8(array)).save("../ImageCache/gradient.png", quality=95)
+    Image.fromarray(np.uint8(array)).save("ImageCache/gradient.png", quality=95)
 
-    gradient = Image.open("../ImageCache/gradient.png")
+    gradient = Image.open("ImageCache/gradient.png")
     titleArtist = ImageDraw.Draw(gradient)
-    myFont = ImageFont.truetype("../fonts/CreamCake.otf", 60)#40)
+    myFont = ImageFont.truetype("fonts/CreamCake.otf", 60)#40)
     titleArtist.text((50,50), (songTitle + "\n" + songArtist), font = myFont, fill = (colors[1].rgb))
-    gradient.save('../ImageCache/gradient.png')
+    gradient.save('ImageCache/gradient.png')
     gradient.paste(image, ((int(gradient.width/2) - int(image.width / 2)), int((gradient.height/2) - int(image.height / 2))), image)
-    gradient.save("../ImageCache/finalImage.png")
+    gradient.save("ImageCache/finalImage.png")
 
