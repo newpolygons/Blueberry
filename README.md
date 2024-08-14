@@ -28,6 +28,7 @@
 4. Install requirements (pip3 install -r requirements.txt)
 5. Run the application (python3 app.py)
 
+Change modes and display resolution in creds.txt
 
 # Fixing Permission Denied Mac
 
