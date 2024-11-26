@@ -2,6 +2,7 @@ Flask
 colorgram.py
 spotipy
 pillow
+opencv-python
 appscript; sys_platform == 'darwin'
 pyobjc; sys_platform == 'darwin'
 numpy
