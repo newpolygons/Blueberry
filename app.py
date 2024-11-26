@@ -1,7 +1,3 @@
-# Run this file to begin. File should be ran from its directory directly.
-# python3 -m flask run
-#Threading https://stackoverflow.com/questions/63500768/how-to-work-with-background-threads-in-flask
-# https://vmois.dev/python-flask-background-thread/
 import os
 import sys
 from rich import print
