@@ -21,6 +21,4 @@
 
 Change modes and display resolution in creds.txt
 
-# Fixing Permission Denied Mac
 
-https://stackoverflow.com/questions/38980338/eacces-permission-denied-in-vs-code-mac
