@@ -17,7 +17,7 @@ if (platform.system() == 'Linux'):
 display = ""
 mode = ""
 
-def main():
+def main(task):
     datadict = get_variables()
     if (platform.system() == "Darwin"):
         mac.backupWallpaper()
@@ -34,8 +34,7 @@ def main():
     display = display.split("x")
 
     spotify_authenticate()
-
-    while 1:
+    if task:
         songInformation = get_song_id()
         songTitle = imageManip.albumImage(mode, songInformation, display)
 
@@ -52,6 +51,24 @@ def main():
         else:
             print(":zzz:[blue]Song hasnt changed yet going to sleep...[/blue]")
             t.sleep(5)
+    else:
+        while 1:
+            songInformation = get_song_id()
+            songTitle = imageManip.albumImage(mode, songInformation, display)
+
+            if songTitle != checkSong():
+                f = open("src/songCheck.txt", "w")
+                f.write(songTitle)
+                f.close()
+                if (platform.system() == 'Linux'):
+                    linux.applyWallpaperLinux()
+                    t.sleep(1)
+                elif (platform.system() == 'Darwin'):
+                    mac.applyWallpaperMac()
+                print(":sound:Current Song: " + songInformation[1] + " - "  + songInformation[2])
+            else:
+                print(":zzz:[blue]Song hasnt changed yet going to sleep...[/blue]")
+                t.sleep(5)
     
 
 

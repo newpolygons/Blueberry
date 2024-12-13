@@ -1,3 +1,5 @@
+flask
+flask-socketio
 colorgram.py
 spotipy
 pillow
