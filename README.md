@@ -21,7 +21,7 @@ is now for frontend (not completely implemented yet use terminal.py for now)
 2. Create a virtual env in the main directory of the application. (python3 -m venv env)
 3. Activate the env (source env/bin/activate)
 4. Install requirements (pip3 install -r requirements.txt)
-5. Run the application (python3 app.py)
+5. Run the application (python3 terminal.py)
 
 Change modes and display resolution in creds.txt
 
