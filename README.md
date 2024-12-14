@@ -11,8 +11,8 @@ Currently Playing Spotify Song As Wallpaper for Gnome and MacOS
 # Change
 python3 terminal.py 
 now runs the application in cli
-python3 app.py
 
+python3 app.py
 is now for frontend (not completely implemented yet use terminal.py for now)
 
 # Images 
