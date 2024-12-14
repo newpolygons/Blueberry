@@ -1,14 +1,14 @@
 <p align="center">
-![blueberry](https://github.com/user-attachments/assets/e7e236e0-b72e-45d2-b08c-f51f0a0de070)
+<img src="blueberry.png" alt="drawing" width="300"/>
 </p>
 
-<p align="center">
 # Blueberry
-</p>
- Currently Playing Spotify Song As Wallpaper for Gnome and MacOS
+
+
+Currently Playing Spotify Song As Wallpaper for Gnome and MacOS
  
  
-# change
+# Change
 python3 terminal.py 
 now runs the application in cli
 python3 app.py
@@ -19,6 +19,8 @@ is now for frontend (not completely implemented yet use terminal.py for now)
 
 ![1](https://user-images.githubusercontent.com/30321729/145736816-33fa7ca4-7e9c-4299-9ea2-dbfe0acc78ab.png)
 
+
+![2](https://github.com/user-attachments/assets/f4383f0f-e6a3-48fa-bc66-bce2d57b4d6c)
 
 
 
