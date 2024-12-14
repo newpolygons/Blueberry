@@ -1,0 +1,22 @@
+@font-face {
+    font-family: 'Rubik';
+    src: url('../fonts/Rubik.ttf')
+}
+@font-face {
+    font-family: 'Photograph';
+    src: url('../fonts/Photograph\ Signature.ttf')
+}
+
+.headerText {
+    font-family: 'Photograph';
+    text-align: center;
+    font-size: 4em;
+}
+
+.iconImage {
+    padding-top: 2%;
+    display:block;
+    margin-left: auto;
+    margin-right:auto;
+    width:15%;
+}
