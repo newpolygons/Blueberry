@@ -2,7 +2,7 @@ import os
 import sys
 import time
 from rich import print
-from flask import Flask, render_template
+from flask import Flask, render_template, request
 from flask_socketio import SocketIO
 from threading import Lock
 
@@ -28,12 +28,18 @@ def blueBerry():
         print("hello")
         time.sleep(5)
 
-@app.route("/")
+@app.route("/", methods=['POST', 'GET'])
 def frontendFunction():
     global thread
     with threadLock:
         if thread is None:
             thread = sio.start_background_task(blueBerry)
+
+    if request.method == "POST":
+        #implement a script to update mode / font / download song
+        print(str(request))
+    
+    
     return render_template('index.html')
 
 

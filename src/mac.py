@@ -15,7 +15,6 @@ def applyWallpaperMac():
     pathList = os.path.splitext(imagePath)
     path = pathList[0] + str(number)
     
-    #handle deleting old images.
     with open("src/currentWallpaper.txt", "r") as f:
         currentWall = f.read()
         f.close()

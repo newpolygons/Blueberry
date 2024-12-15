@@ -8,6 +8,12 @@
 }
 body {
     margin: 0%;
+    background: linear-gradient(106deg, #3ac6f0, #2175d7);
+    background-size: 400% 400%;
+
+    -webkit-animation: AnimationName 30s ease infinite;
+    -moz-animation: AnimationName 30s ease infinite;
+    animation: AnimationName 30s ease infinite;
 }
 .headerText {
     font-family: 'Photograph';
@@ -27,7 +33,6 @@ body {
     margin-left: auto;
     margin-right: auto;
     text-align: center;
-    background-color: #4943cb;
     
 
 }
@@ -38,63 +43,57 @@ body {
     font-size: 2em;
 }
 
-ul.horizontal-list {
-    
-    list-style-type: none;
-    padding-bottom: 10%;
-    
-  }
+.modeText {
+  font-family: 'Rubik';
+  text-align: center;
+  font-size: 1.5em;
 
-  ul.horizontal-list li {
-    font-family: 'Rubik';
-    font-size: 1.5em;
-    margin-right: 5%;
-    display: inline;
-  }
+}
 
-  .dropbtn {
-    background-color: #4CAF50;
-    color: white;
-    padding: 16px;
-    font-size: 16px;
-    border: none;
-    cursor: pointer;
-    border-radius: 15px;
-  }
-  
-  /* The container <div> - needed to position the dropdown content */
-  .dropdown {
-    position: relative;
-    display: inline-block;
-  }
-  
-  /* Dropdown Content (Hidden by Default) */
-  .dropdown-content {
-    display: none;
-    position: absolute;
-    background-color: #f9f9f9;
-    min-width: 160px;
-    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
-    z-index: 1;
-  }
-  
-  /* Links inside the dropdown */
-  .dropdown-content a {
-    color: black;
-    padding: 12px 16px;
-    text-decoration: none;
-    display: block;
-  }
-  
-  /* Change color of dropdown links on hover */
-  .dropdown-content a:hover {background-color: #f1f1f1}
-  
-  /* Show the dropdown menu on hover */
-  .dropdown:hover .dropdown-content {
-    display: block;
-  }
-  
-  /* Change the background color of the dropdown button when the dropdown content is shown */
-  .dropdown:hover .dropbtn {
-    background-color: #3e8e41;
-  }
+.fontText {
+  font-family: 'Rubik';
+  text-align: center;
+  font-size: 1.5em;
+}
+
+.radio-inputs {
+  margin-left: auto;
+  margin-right: auto;
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  border-radius: 0.5rem;
+  background-color: #EEE;
+  box-sizing: border-box;
+  box-shadow: 0 0 0px 1px rgba(0, 0, 0, 0.06);
+  padding: 0.25rem;
+  width: 300px;
+  font-size: 14px;
+}
+
+.radio-inputs .radio {
+  flex: 1 1 auto;
+  text-align: center;
+}
+
+.radio-inputs .radio input {
+  display: none;
+}
+
+.radio-inputs .radio .name {
+  display: flex;
+  cursor: pointer;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.5rem;
+  border: none;
+  padding: .5rem 0;
+  color: rgba(51, 65, 85, 1);
+  transition: all .15s ease-in-out;
+}
+
+.radio-inputs .radio input:checked + .name {
+  background-color: #fff;
+  font-weight: 600;
+}
+

@@ -3,5 +3,6 @@ docs/
 .DS_Store
 *.pyc
 *.pyo
+*.wav
+*.mp3
 __pycache__/
-node_modules
