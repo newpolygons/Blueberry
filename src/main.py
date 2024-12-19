@@ -4,14 +4,14 @@ import platform
 import glob
 import spotipy
 import time as t
-import imageManip
+from . import imageManip
 from rich import print
 
 if (platform.system() == "Darwin"):
-    import mac
+    from . import mac
 
 if (platform.system() == 'Linux'):
-    import linux
+    from . import linux
 
 # Get creds please enter your creds in creds.txt at path /Blueberry/creds.txt
 display = ""

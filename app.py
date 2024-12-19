@@ -2,6 +2,7 @@ import os
 import sys
 import time
 from rich import print
+from src import main
 from flask import Flask, render_template, request
 from flask_socketio import SocketIO
 from threading import Lock
@@ -9,10 +10,6 @@ from threading import Lock
 #This file is wip use terminal.py for now to continue using the application normally
 
 
-'''
-sys.path.insert(1, 'src')
-import main
-'''
 
 templateDir = os.path.abspath('frontend/templates')
 staticDir = os.path.abspath('frontend/static')

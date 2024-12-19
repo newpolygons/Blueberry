@@ -3,9 +3,7 @@
 import os
 import sys
 from rich import print
-
-sys.path.insert(1, 'src')
-import main
+from src import main
 
 
 
