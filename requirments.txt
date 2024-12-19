@@ -3,8 +3,6 @@ flask-socketio
 colorgram.py
 spotipy
 pillow
-appscript; sys_platform == 'darwin'
-pyobjc; sys_platform == 'darwin'
 numpy
 rich
 spotdl
