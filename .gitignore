@@ -6,3 +6,4 @@ docs/
 *.wav
 *.mp3
 __pycache__/
+.cache
