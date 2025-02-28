@@ -1,5 +1,4 @@
 env/
-docs/
 .DS_Store
 *.pyc
 *.pyo

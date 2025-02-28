@@ -2,8 +2,10 @@
 <img src="blueberry.png" alt="drawing" width="300"/>
 </p>
 
-# Blueberry
+# Blueberry DEV
 
+
+This is the development branch where active updates are being made. You might want the main branch.
 
 Currently Playing Spotify Song As Wallpaper for Gnome and MacOS
  
