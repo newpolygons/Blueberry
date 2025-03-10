@@ -1,20 +1,22 @@
 import os
 import sys
 import time
-from rich import print
+import argparse
 from src import main
 from flask import Flask, render_template, request
 from flask_socketio import SocketIO
 from threading import Lock
 
-#This file is wip use terminal.py for now to continue using the application normally
 
 
 
-templateDir = os.path.abspath('frontend/templates')
-staticDir = os.path.abspath('frontend/static')
+
+
+
+templateDir = os.path.abspath('src/frontend/templates')
+staticDir = os.path.abspath('src/frontend/static')
 app = Flask(__name__, template_folder=templateDir, static_folder=staticDir)
-sio = SocketIO(app)
+sockerIO = SocketIO(app)
 
 thread = None
 threadLock = Lock()
@@ -30,7 +32,7 @@ def frontendFunction():
     global thread
     with threadLock:
         if thread is None:
-            thread = sio.start_background_task(blueBerry)
+            thread = sockerIO.start_background_task(blueBerry)
 
     if request.method == "POST":
         #implement a script to update mode / font / download song
@@ -40,5 +42,18 @@ def frontendFunction():
     return render_template('index.html')
 
 
+def run():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--terminal", default=None, 
+                        help="No UI")
+    parser.add_argument("--download", default=None, 
+                        help="Download Current Spotify Song")
+    args = parser.parse_args()
+
+    
+
+
+
 if __name__ == '__main__':
-    sio.run(app)
+    #socketIO.run(app)
+    run()

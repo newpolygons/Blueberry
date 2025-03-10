@@ -4,5 +4,4 @@ colorgram.py
 spotipy
 pillow
 numpy
-rich
 spotdl
