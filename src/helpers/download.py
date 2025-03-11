@@ -1,7 +1,6 @@
 #functions for downloading current song
 import subprocess
 import os
-
 downloadDir = os.path.join('.', 'downloads')
 formatType = 'wav' # {mp3,flac,ogg,opus,m4a,wav}
 
@@ -15,6 +14,13 @@ def downloadCurrentSong(link):
         print(e)
     
 
+if __name__ == __main__():
+    '''
+    from ../main import spotify_authenticate(), get_song_id()
+    spotify_authenticate()
+    get_song_id()
+    downloadCurrentSong(link)
+    '''
+    print("Ill work one day!")
 
-
-# https://open.spotify.com/track/1Es7AUAhQvapIcoh3qMKDL?si=1fe8319d9d924eb3
+# https://open.spotify.com/track/1Es7AUAhQvapIcoh3qMKDL

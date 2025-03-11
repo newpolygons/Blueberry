@@ -4,108 +4,87 @@ import platform
 import glob
 import spotipy
 import time as t
-from . import imageManip
-from rich import print
+from src import image
+from src import download
 
-if (platform.system() == "Darwin"):
-    from . import mac
+setupPlatform(currentOS):
+    if (currentOS == "Darwin"):
+        from src import mac
+        mac.backupWallpaper()
+        display = mac.getScreenResolution()
+        print("Display Resolution: " + display)
 
-if (platform.system() == 'Linux'):
-    from . import linux
+    elif (currentOS == 'Linux'):
+        from src import linux
+        # Begin work to auto collect display resolution will be perminitly changed after Linux Testing
+        datadict = get_variables()
+        display = datadict["display_size"]
+        print("Display Resolution: " + display)
+    else:
+        print("Your current Operating System:("+ str(currentOS)+") is currently unsupported!")
+        exit()
 
 # Get creds please enter your creds in creds.txt at path /Blueberry/creds.txt
 display = ""
-mode = ""
 
-def main(task):
-    datadict = get_variables()
-    if (platform.system() == "Darwin"):
-        mac.backupWallpaper()
-        display = mac.getScreenResolution()
-        print("[green]Display Resolution: [/green]" + display)
-    else:
-        display = datadict["display_size"]
-        print("[green]Display Resolution: [/green]" + display)
-    mode = datadict["mode"]
-    print("[green]Selected Mode: [/green]" + mode)
 
-    # Begin work to auto collect display resolution will be perminitly changed after Linux Testing
-
+def main(style, download, font, currentOS):
+    if download = True:
+        spotify_authenticate()
+        download.downloadCurrentSong(link)
+        exit()
+    
+    style = style
+    print("Selected Mode: " + mode)
     display = display.split("x")
-
     spotify_authenticate()
-    if task:
+    
+    while 1:
         songInformation = get_song_id()
         songTitle = imageManip.albumImage(mode, songInformation, display)
 
         if songTitle != checkSong():
+            #update to just hold in var
             f = open("src/songCheck.txt", "w")
             f.write(songTitle)
             f.close()
-            if (platform.system() == 'Linux'):
+            if (currentOS == 'Linux'):
                 linux.applyWallpaperLinux()
                 t.sleep(1)
-            elif (platform.system() == 'Darwin'):
+            elif (currentOS == 'Darwin'):
                 mac.applyWallpaperMac()
-            print(":sound:Current Song: " + songInformation[1] + " - "  + songInformation[2])
+            print("Current Song: " + songInformation[1] + " - "  + songInformation[2])
         else:
-            print(":zzz:[blue]Song hasnt changed yet going to sleep...[/blue]")
+            print("Song hasnt changed yet going to sleep...")
             t.sleep(5)
-    else:
-        while 1:
-            songInformation = get_song_id()
-            songTitle = imageManip.albumImage(mode, songInformation, display)
-
-            if songTitle != checkSong():
-                f = open("src/songCheck.txt", "w")
-                f.write(songTitle)
-                f.close()
-                if (platform.system() == 'Linux'):
-                    linux.applyWallpaperLinux()
-                    t.sleep(1)
-                elif (platform.system() == 'Darwin'):
-                    mac.applyWallpaperMac()
-                print(":sound:Current Song: " + songInformation[1] + " - "  + songInformation[2])
-            else:
-                print(":zzz:[blue]Song hasnt changed yet going to sleep...[/blue]")
-                t.sleep(5)
-    
-
-
-def spotify_authenticate():
-    #If you want to use your own Spotify application change client_id here.
-    client_id = "2a487b56eba34dbdb32c7109f6292b9c"
-    redirect_uri = "http://127.0.0.1:8080"
-    auth_manager = spotipy.oauth2.SpotifyPKCE(scope='user-read-currently-playing', client_id = client_id,
-                                               redirect_uri = redirect_uri)
-    global spotify_token
-    spotify_token = spotipy.Spotify(auth_manager.get_access_token())
     
 
 def get_song_id():
-    songINFO = spotify_token.current_user_playing_track()
+    songInfo = spotify_token.current_user_playing_track()
     try:
-        song_content = songINFO
-        id = song_content['item']['id']
+        songContent = songInfo
+        id = songContent['item']['id']
         if not id:
-            t.sleep(2)
+            t.sleep(4)
             get_song_id()
         
-        name = song_content['item']['name']    
-        artistName = song_content['item']['album']['artists'][0]['name']
-        imageUrl = song_content['item']['album']['images'][0]['url']         
+        name = songContent['item']['name']    
+        artistName = songContent['item']['album']['artists'][0]['name']
+        imageUrl = songContent['item']['album']['images'][0]['url']         
         imageRequest = requests.get(str(imageUrl))
-        file = open("ImageCache/newCover.png", "wb")
+
+        #turn image.content into var
+        file = open("src/ImageCache/newCover.png", "wb")
         file.write(imageRequest.content)
         file.close()
         return [id, name, artistName]
     except KeyError:
-        print("[bold red]KEY ERROR, attempting to reauthenticate![/bold red]")
+        print("KEY ERROR, attempting to reauthenticate!")
         spotify_authenticate()
         
     except TypeError:
-        print("[bold red]Spotify Error: make sure valid song is playing[/bold red]")
-        print("[yellow]:yawning_face:Waiting for valid song to be played.[/yellow]")
+        print("Spotify Error: make sure valid song is playing")
+        print("Waiting for valid song to be played.")
         t.sleep(5)
         get_song_id()
     except ValueError:
