@@ -1,5 +1,8 @@
-def getColors():
 #Setup Background Colors
+import colorgram
+
+
+def getColors():
     colors = colorgram.extract('ImageCache/newCover.png', 2)
     if len(colors) < 2:
         firstColor = colors[0]

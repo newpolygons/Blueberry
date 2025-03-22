@@ -1,53 +1,42 @@
 import requests
 import os 
-import platform 
-import glob
 import spotipy
 import time as t
-from src import image
-from src import download
-
-setupPlatform(currentOS):
+from src.helpers import image
+from src.helpers import download
+from src.helpers import authenticate
+def setupPlatform(currentOS):
     if (currentOS == "Darwin"):
         from src import mac
         mac.backupWallpaper()
         display = mac.getScreenResolution()
         print("Display Resolution: " + display)
-
-    elif (currentOS == 'Linux'):
+        return display
+    elif (currentOS == "Linux"):
         from src import linux
         # Begin work to auto collect display resolution will be perminitly changed after Linux Testing
         datadict = get_variables()
         display = datadict["display_size"]
         print("Display Resolution: " + display)
+        return display
     else:
         print("Your current Operating System:("+ str(currentOS)+") is currently unsupported!")
         exit()
 
 # Get creds please enter your creds in creds.txt at path /Blueberry/creds.txt
-display = ""
 
 
-def main(style, download, font, currentOS):
-    if download = True:
-        spotify_authenticate()
-        download.downloadCurrentSong(link)
-        exit()
-    
-    style = style
-    print("Selected Mode: " + mode)
-    display = display.split("x")
-    spotify_authenticate()
-    
+def main(style, font, currentOS):
+    display = setupPlatform(currentOS).split("x")
+    fontPath = fontSelector(font)
+    spotify_token = authenticate.spotify_authenticate()
+    oldSong = ''
     while 1:
-        songInformation = get_song_id()
-        songTitle = imageManip.albumImage(mode, songInformation, display)
+        songInformation = get_song_id(spotify_token)
+        songTitle = image.albumImage(style, songInformation, display, fontPath)
 
-        if songTitle != checkSong():
-            #update to just hold in var
-            f = open("src/songCheck.txt", "w")
-            f.write(songTitle)
-            f.close()
+        if songTitle != oldSong:
+            oldSong = songTitle
             if (currentOS == 'Linux'):
                 linux.applyWallpaperLinux()
                 t.sleep(1)
@@ -59,7 +48,7 @@ def main(style, download, font, currentOS):
             t.sleep(5)
     
 
-def get_song_id():
+def get_song_id(spotify_token):
     songInfo = spotify_token.current_user_playing_track()
     try:
         songContent = songInfo
@@ -73,14 +62,14 @@ def get_song_id():
         imageUrl = songContent['item']['album']['images'][0]['url']         
         imageRequest = requests.get(str(imageUrl))
 
-        #turn image.content into var
-        file = open("src/ImageCache/newCover.png", "wb")
+        
+        file = open("src/helpers/.cache/newCover.png", "wb")
         file.write(imageRequest.content)
         file.close()
         return [id, name, artistName]
     except KeyError:
         print("KEY ERROR, attempting to reauthenticate!")
-        spotify_authenticate()
+        spotify_token = authenticate.spotify_authenticate()
         
     except TypeError:
         print("Spotify Error: make sure valid song is playing")
@@ -109,22 +98,31 @@ def get_variables():
         return dicti
 
 
-def checkSong():
-    f = open("src/songCheck.txt", "r")
-    song = f.read()
-    f.close()
-    return song
+
+def removeCache():
+    cacheDirectory = 'src/helpers/.cache'
+    for file in os.listdir(cacheDirectory):
+        filePath = os.path.join(cacheDirectory, file)
+        if os.path.isfile(filePath):
+            try:
+                print("Deleting cache file: " + str(filePath))
+                os.remove(filePath)
+            except:
+                print("There was an issue deleting files in src/helpers/.cache")
+                exit()
 
 
-def removeImageCache():
-    files = glob.glob('ImageCache/*')
-    for f in files:
-        try:
-            os.remove(f)
-        except:
-            pass
-
-
+def fontSelector(font):
+    match lower(font):
+        case 'rubik':
+            return 'src/fonts/Rubik.ttf'
+        case 'signature':
+            return 'src/fonts/Photograph Signature.ttf'
+        case 'creamcake':
+            return 'src/fonts/CreamCake.otf'
+        case _:
+            "Font provided: " + str(font) + " is not currently supported defaulting to Rubik"
+            return 'src/fonts/Rubik.ttf'
 
 
 

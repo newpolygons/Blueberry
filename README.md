@@ -4,16 +4,20 @@
 
 # Blueberry
 
-
 Currently Playing Spotify Song As Wallpaper for Gnome and MacOS
  
- 
-# Change
-python3 terminal.py 
-now runs the application in cli
+ # Prerequisites
 
-python3 app.py
-is now for frontend (not completely implemented yet use terminal.py for now)
+Install GTK4 and its Python bindings (PyGObject).
+
+    On Linux (Debian/Ubuntu):
+    sudo apt install libgtk-4-1 gir1.2-gtk-4.0 python3-gi python3-gi-cairo
+
+    On Linux (Fedora):
+        
+
+    On macOS (using Homebrew):
+    brew install gtk4 pygobject3
 
 # Images 
 
@@ -21,6 +25,8 @@ is now for frontend (not completely implemented yet use terminal.py for now)
 
 
 ![2](https://github.com/user-attachments/assets/f4383f0f-e6a3-48fa-bc66-bce2d57b4d6c)
+
+
 
 
 

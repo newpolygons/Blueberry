@@ -5,5 +5,3 @@ env/
 *.wav
 *.mp3
 __pycache__/
-.cache
-backup/*

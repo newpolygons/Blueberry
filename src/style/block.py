@@ -1,27 +1,19 @@
-def blockMode(baseWidth, baseHeight, songTitle, songArtist, width, height, image):
-    #we could pass all this variables as a list but this is better for understanding what data is going where at a glance.
-    colors = getColors()
+from PIL import Image, ImageDraw, ImageFont
 
-    colorImageOne = Image.new('RGB', (baseWidth, int(baseHeight / 2)), (colors[0].rgb))
+# Block Style, find examples at docs/CLI.MD
+
+def blockMode(varList, colors):
+    colorImageOne = Image.new('RGB', (varList[0], int(varList[1] / 2)), (colors[0].rgb))
     titleArtist = ImageDraw.Draw(colorImageOne)
-
-    myFont = ImageFont.truetype("fonts/CreamCake.otf", 60)#40)
-    titleArtist.text((50,50), (songTitle + "\n" + songArtist), font = myFont, fill = (colors[1].rgb))
-    colorImageOne.save('ImageCache/firstColor.png')
-
-    colorImageTwo = Image.new('RGB', (baseWidth, int(baseHeight / 2)), (colors[1].rgb))
-    colorImageTwo.save('ImageCache/secondColor.png')
-
-
-    #Combine Images
-
-    background = Image.new('RGB', (colorImageOne.width, colorImageOne.height + colorImageTwo.height))
+    myFont = ImageFont.truetype(fontPath, 60)#40)
+    titleArtist.text((50,50), (varList[2] + "\n" + varList[3]), font = myFont, fill = (colors[1].rgb))
+    colorImageOne.save('src/helpers/.cache/firstColor.png')
+    colorImageTwo = Image.new('RGB', (varList[0], int(varList[1] / 2)), (colors[1].rgb))
+    colorImageTwo.save('src/helpers/.cache/secondColor.png')
+    background = Image.new('RGB', (colorImageOne.varList[4], colorImageOne.varList[5] + colorImageTwo.varList[5]))
     background.paste(colorImageOne, (0, 0))
-    background.paste(colorImageTwo, (0, colorImageOne.height))
-    background.save('ImageCache/background.png')
-
-    
-    
-    finalImage = Image.new('RGB', (width, height))
-    background.paste(image, ((int(background.width/2) - int(image.width / 2)), int((background.height/2) - int(image.height / 2))), image)
-    background.save("ImageCache/finalImage.png")
+    background.paste(colorImageTwo, (0, colorImageOne.varList[5]))
+    background.save('src/helpers/.cache/background.png')
+    finalImage = Image.new('RGB', (varList[4], varList[5]))
+    background.paste(varList[6], ((int(background.varList[4]/2) - int(varList[6].varList[4] / 2)), int((background.varList[5]/2) - int(varList[6].varList[5] / 2))), varList[6])
+    background.save("src/helpers/.cache/finalImage.png")

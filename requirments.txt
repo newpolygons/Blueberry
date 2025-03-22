@@ -1,7 +1,6 @@
-flask
-flask-socketio
 colorgram.py
 spotipy
 pillow
 numpy
 spotdl
+moviepy

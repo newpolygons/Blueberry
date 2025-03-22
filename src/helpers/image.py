@@ -1,8 +1,13 @@
-def albumImage(mode, songInformation, display):
+from color import getColors
+from style import *
+from PIL import Image, ImageDraw
+
+def albumImage(style, songInformation, display, fontPath):
     try:
         songTitle = songInformation[1]
         songArtist = songInformation[2]
     except:
+        print("error occured in album image function")
         return
      # Setup Album Image
     width = int(int(display[0]) / 5)
@@ -10,20 +15,27 @@ def albumImage(mode, songInformation, display):
     
     baseWidth = int(display[0])
     baseHeight = int(display[1])
-    image = Image.open("ImageCache/newCover.png")
+    image = Image.open("src/helpers/.cache/newCover.png")
     wpercent = (width/float(image.size[0]))
     hsize = int((float(image.size[1])*float(wpercent)))
     image = image.resize((width,hsize), Image.LANCZOS)
     #Adding rounded corners and drop shadow to images
     
     image = add_corners(image, 20)
-    image.save('ImageCache/newCover.png')
-    
-    if (mode == 'block'):
-        blockMode(baseWidth, baseHeight, songTitle, songArtist, width, height, image)
-    elif (mode == "gradient"):
-        gradientMode(baseWidth, baseHeight, songTitle, songArtist, width, height, image)
+    image.save('src/helpers/.cache/newCover.png')
 
+    colors = getColors(image)
+    varList = [baseWidth, baseHeight, songTitle, songArtist, width, height, image, fontPath]
+    
+    if (style == 'block'):
+        block.blockMode(varList, colors)
+    elif (style == "gradient"):
+        gradient.gradientMode(varList, colors)
+    elif (style == "video"):
+        video.videoMode(varList, colors)
+    else:
+        print("Style: " + str(style) + " is not supported please check the spelling of provided style.")
+        exit()
     return songTitle
 
 

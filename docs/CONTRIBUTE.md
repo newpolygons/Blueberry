@@ -2,4 +2,4 @@
 
 
 
-Feel free to submit a pull request, just NO classes! 
+Feel free to submit a pull request, just NO classes!
