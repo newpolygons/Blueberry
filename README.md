@@ -19,6 +19,16 @@ Install GTK4 and its Python bindings (PyGObject).
     On macOS (using Homebrew):
     brew install gtk4 pygobject3
 
+# Usage 
+
+In the root of the project.
+
+    python3 -m venv env && source env/bin/activate
+    pip3 install -r requirements.txt
+    python3 app.py
+
+    You can find more information about optional arguments in docs/CLI.MD
+
 # Images 
 
 ![1](https://user-images.githubusercontent.com/30321729/145736816-33fa7ca4-7e9c-4299-9ea2-dbfe0acc78ab.png)
@@ -30,14 +40,6 @@ Install GTK4 and its Python bindings (PyGObject).
 
 
 
-# Usage
 
-1. Clone the repository
-2. Create a virtual env in the main directory of the application. (python3 -m venv env)
-3. Activate the env (source env/bin/activate)
-4. Install requirements (pip3 install -r requirements.txt)
-5. Run the application (python3 terminal.py)
-
-Change modes and display resolution in creds.txt
 
 
