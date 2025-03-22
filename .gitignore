@@ -8,3 +8,4 @@ __pycache__/
 src/wallpaperBackup/
 downloads/
 src/helpers/.cache/
+src/test.py

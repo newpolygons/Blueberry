@@ -25,7 +25,7 @@ eg. --font 'Signature'
 
 # --restore-wall
 
-This argument will attempt to automatically set your wallpaper to the most recent backed up wallpaper image.
+This argument will attempt to automatically set your wallpaper to the most recently backed up wallpaper image.
 
 eg. --restore-wall
 
