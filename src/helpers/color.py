@@ -3,7 +3,7 @@ import colorgram
 
 
 def getColors():
-    colors = colorgram.extract('ImageCache/newCover.png', 2)
+    colors = colorgram.extract('src/helpers/.cache/newCover.png', 2)
     if len(colors) < 2:
         firstColor = colors[0]
         secondColor = colors[0]

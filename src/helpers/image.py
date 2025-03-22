@@ -1,6 +1,6 @@
 from color import getColors
-from style import *
 from PIL import Image, ImageDraw
+from style import *
 
 def albumImage(style, songInformation, display, fontPath):
     try:

@@ -2,9 +2,8 @@ import requests
 import os 
 import spotipy
 import time as t
-from src.helpers import image
-from src.helpers import download
-from src.helpers import authenticate
+from src.helpers import image, download, authenticate
+
 def setupPlatform(currentOS):
     if (currentOS == "Darwin"):
         from src import mac
@@ -20,7 +19,7 @@ def setupPlatform(currentOS):
         print("Display Resolution: " + display)
         return display
     else:
-        print("Your current Operating System:("+ str(currentOS)+") is currently unsupported!")
+        print("Your Operating System:("+ str(currentOS)+") is currently unsupported!")
         exit()
 
 # Get creds please enter your creds in creds.txt at path /Blueberry/creds.txt
@@ -77,12 +76,14 @@ def get_song_id(spotify_token):
         t.sleep(5)
         get_song_id()
     except ValueError:
-        print("[bold red]Error: looks like no song is playing[/bold red]")
-        print("[yellow]:yawning_face:Waiting for valid song to be played.[/yellow]")
+        print("Looks like no song is playing.")
+        print("Waiting for valid song to be played.")
         t.sleep(5)
         get_song_id()
 
 
+
+# Will be completely finishing up removing this functionality next feature addition
 def get_variables():
     dicti = {}
     with open('creds.txt', 'r') as file:
