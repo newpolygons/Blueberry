@@ -5,3 +5,5 @@ env/
 *.wav
 *.mp3
 __pycache__/
+src/wallpaperBackup/
+downloads/
