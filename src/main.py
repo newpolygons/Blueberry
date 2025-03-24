@@ -12,8 +12,7 @@ def main(style, font, currentOS):
         print("Display Resolution: " + display)
     elif (currentOS == "Linux"):
         from src.helpers import linux
-        datadict = get_variables()
-        display = datadict["display_size"]
+        display = "1920x1080"
         print("Display Resolution: " + display)
     else:
         print("Your Operating System:("+ str(currentOS)+") is currently unsupported!")

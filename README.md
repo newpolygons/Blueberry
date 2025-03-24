@@ -19,6 +19,10 @@ In the root of the project.
     python3 app.py
 
     You can find more information about optional arguments in docs/CLI.MD
+    
+    Display size on linux is not automatically found. The default is 1920x1080 and can be edited on line 15 of main.main()
+    Additionally on linux you will not see the wallpaper change if you have dark mode selected in your system settings.
+    Both of these will be changed to happen automatically shortly.
 
 # Images 
 
