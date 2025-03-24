@@ -1,4 +1,0 @@
-#Enter details  (no quotes) Modes are (block, gradient)
-display_size = 2560x1440
-mode = gradient
-

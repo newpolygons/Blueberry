@@ -1,10 +1,11 @@
 env/
-docs/
 .DS_Store
 *.pyc
 *.pyo
 *.wav
 *.mp3
 __pycache__/
-.cache
-backup/*
+src/wallpaperBackup/
+downloads/
+src/helpers/.cache/
+src/test.py
