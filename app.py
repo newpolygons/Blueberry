@@ -4,8 +4,8 @@ from src import main
 
 def run():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--style", default='gradient', 
-                        help="Choose the background style 'gradient' or 'block', default is gradient.")
+    parser.add_argument("--style", default='video', 
+                        help="Choose the background style 'video','gradient' or 'block', default is video.")
     parser.add_argument("--font", default='Rubik',
                         help="Choose the font 'Rubik', 'Signature' or 'CreamCake', default is Rubik. ")
     parser.add_argument("--restorewall", action='store_true', 

@@ -2,7 +2,7 @@ from PIL import Image, ImageDraw
 from . import color
 from src.style.gradient import gradientMode
 from src.style.block import blockMode
-
+from src.style.video import videoMode
 
 def albumImage(style, songInformation, display, fontPath):
     try:
@@ -29,6 +29,9 @@ def albumImage(style, songInformation, display, fontPath):
     if (style == 'block'):
         blockMode(baseWidth, baseHeight, songTitle, songArtist, width, height, image, fontPath)
     elif (style == "gradient"):
+        gradientMode(baseWidth, baseHeight, songTitle, songArtist, width, height, image, fontPath)
+    elif (style == "video"):
+        image = ('src/helpers/.cache/newCover.png')
         gradientMode(baseWidth, baseHeight, songTitle, songArtist, width, height, image, fontPath)
     
     
