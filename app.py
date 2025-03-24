@@ -4,11 +4,11 @@ from src import main
 
 def run():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--style", default='video', 
-                        help="Choose the background style 'video', 'gradient' or 'block', default is video.")
+    parser.add_argument("--style", default='gradient', 
+                        help="Choose the background style 'gradient' or 'block', default is gradient.")
     parser.add_argument("--font", default='Rubik',
                         help="Choose the font 'Rubik', 'Signature' or 'CreamCake', default is Rubik. ")
-    parser.add_argument("--restore-wall", action='store_true', 
+    parser.add_argument("--restorewall", action='store_true', 
                         help="Restore backed up wallpaper.")
     parser.add_argument("--download", default='', 
                         help="Download a spotify song, please provide the link in quotes eg 'https://spotify.com' ")
@@ -22,7 +22,7 @@ def run():
         download.downloadCurrentSong(str(args.download))
     elif args.clean:
         main.removeCache()
-    elif args.restore-wall:
+    elif args.restorewall:
         print("This isnt implemented yet but backing up wallpapers is (!ONMACRN!)  !!! go to src/wallpaperBackup to find your original wallpaper :)")
     else:
         currentOS = platform.system()

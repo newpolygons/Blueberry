@@ -1,41 +1,32 @@
 import requests
 import os 
-import spotipy
 import time as t
 from src.helpers import image, download, authenticate
 
-def setupPlatform(currentOS):
+
+def main(style, font, currentOS):
     if (currentOS == "Darwin"):
-        from src import mac
+        from src.helpers import mac
         mac.backupWallpaper()
         display = mac.getScreenResolution()
         print("Display Resolution: " + display)
-        return display
     elif (currentOS == "Linux"):
-        from src import linux
-        # Begin work to auto collect display resolution will be perminitly changed after Linux Testing
+        from src.helpers import linux
         datadict = get_variables()
         display = datadict["display_size"]
         print("Display Resolution: " + display)
-        return display
     else:
         print("Your Operating System:("+ str(currentOS)+") is currently unsupported!")
         exit()
-
-# Get creds please enter your creds in creds.txt at path /Blueberry/creds.txt
-
-
-def main(style, font, currentOS):
-    display = setupPlatform(currentOS).split("x")
+    display = display.split("x")
     fontPath = fontSelector(font)
     spotify_token = authenticate.spotify_authenticate()
     oldSong = ''
     while 1:
         songInformation = get_song_id(spotify_token)
-        songTitle = image.albumImage(style, songInformation, display, fontPath)
-
-        if songTitle != oldSong:
-            oldSong = songTitle
+        if songInformation[1] != oldSong:
+            oldSong = songInformation[1]
+            image.albumImage(style, songInformation, display, fontPath)
             if (currentOS == 'Linux'):
                 linux.applyWallpaperLinux()
                 t.sleep(1)
@@ -43,7 +34,6 @@ def main(style, font, currentOS):
                 mac.applyWallpaperMac()
             print("Current Song: " + songInformation[1] + " - "  + songInformation[2])
         else:
-            print("Song hasnt changed yet going to sleep...")
             t.sleep(5)
     
 
@@ -74,29 +64,16 @@ def get_song_id(spotify_token):
         print("Spotify Error: make sure valid song is playing")
         print("Waiting for valid song to be played.")
         t.sleep(5)
+        spotify_token = authenticate.spotify_authenticate()
         get_song_id()
     except ValueError:
         print("Looks like no song is playing.")
         print("Waiting for valid song to be played.")
         t.sleep(5)
+        spotify_token = authenticate.spotify_authenticate()
         get_song_id()
 
 
-
-# Will be completely finishing up removing this functionality next feature addition
-def get_variables():
-    dicti = {}
-    with open('creds.txt', 'r') as file:
-        content = file.readlines()
-        for line in content:
-            if "=" in line:
-                v = line.split("=")
-                if len(v) == 2:
-                    dicti[v[0].strip()] = v[1].strip()
-                else:
-                    print("Please fill in your information on the creds.txt file")
-                    exit()
-        return dicti
 
 
 
@@ -114,7 +91,7 @@ def removeCache():
 
 
 def fontSelector(font):
-    match lower(font):
+    match font.lower():
         case 'rubik':
             return 'src/fonts/Rubik.ttf'
         case 'signature':

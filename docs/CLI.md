@@ -4,11 +4,11 @@
 
 # --style 
 
-This argument will allow you to select a different style then the default 'video'
+This argument will allow you to select a different style then the default 'gradient'
 
 Currently supported styles are
 
-video, gradient, block
+gradient, block
 
 eg. --style 'gradient'
 
@@ -23,14 +23,14 @@ Rubik, Signature, CreamCake
 
 eg. --font 'Signature'
 
-# --restore-wall
+# --restorewall (not implemented)
 
 This argument will attempt to automatically set your wallpaper to the most recently backed up wallpaper image.
 
-eg. --restore-wall
+eg. --restorewall
 
 
-# --download 
+# --download  (partially implemented)
 
 This argument will download a spotify song, then exit the application.
 

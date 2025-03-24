@@ -8,16 +8,7 @@ Currently Playing Spotify Song As Wallpaper for Gnome and MacOS
  
  # Prerequisites
 
-Install GTK4 and its Python bindings (PyGObject).
-
-    On Linux (Debian/Ubuntu):
-    sudo apt install libgtk-4-1 gir1.2-gtk-4.0 python3-gi python3-gi-cairo
-
-    On Linux (Fedora):
-        
-
-    On macOS (using Homebrew):
-    brew install gtk4 pygobject3
+    FFMPEG
 
 # Usage 
 

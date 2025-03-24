@@ -20,32 +20,42 @@ def applyWallpaperMac():
     if currentWall != path:
         with open("src/helpers/.cache/currentWallpaper.txt", "w") as f:
             try:
-                os.remove("src/helpers/.cache/" + currentWall + ".png")
-            except:
+                os.remove(currentWall + ".png")
+            except Exception as e:
+                print(e)
                 print("The file was likely empty if this is your first time running disreguard.")
             f.write(path)
             f.close()
-        
-    os.rename(imagePath, path + ".png")
+    try:
+        os.rename(imagePath, path + ".png")
+    except:
+        os.system('touch src/helpers/.cache/finalImage.png')
+        os.rename(imagePath, path + ".png")
+
     subprocess.run(["./src/swift/changeWallpaper.swift", path + ".png"])
     
 def backupWallpaper():
+    '''
     cmd = """
     tell application "Finder"
     set theDesktopPic to desktop picture as alias
     set theName to posix path of theDesktopPic
     end tell
     """
-    wallPath = subprocess.run(['osascript', '-e', cmd], capture_output = True)
-    
+    wallPath = subprocess.run(['osascript', '-e', cmd], capture_output = True, text = True).stdout.strip("\n")
+    print("This is the file path of the current wallpaper: ", wallPath)
     try:
-        shutil.copy(str(wallPath.stdout.decode('ASCII')).replace('\n', ''), 'src/wallpaperBacker/' + str(time.time()).replace('.', ''))
+        timeStamp = str(time.time()).replace('.','')
+        os.mkdir('src/wallpaperBackup/' + timeStamp + '/')
+        wallBackPath = str('src/wallpaperBackup/' + timeStamp + '/')
+        shutil.copy(wallPath, wallBackPath)
     except Exception as e:
         print(e)
         print("An issue occured with the original wallpaper backup!")
         print("Exiting application to prevent loss of original wallpaper.")
         exit()
-
+    '''
+    pass
 
 
 def getScreenResolution():

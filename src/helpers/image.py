@@ -1,6 +1,8 @@
-from color import getColors
 from PIL import Image, ImageDraw
-from style import *
+from . import color
+from src.style.gradient import gradientMode
+from src.style.block import blockMode
+
 
 def albumImage(style, songInformation, display, fontPath):
     try:
@@ -24,19 +26,14 @@ def albumImage(style, songInformation, display, fontPath):
     image = add_corners(image, 20)
     image.save('src/helpers/.cache/newCover.png')
 
-    colors = getColors(image)
-    varList = [baseWidth, baseHeight, songTitle, songArtist, width, height, image, fontPath]
-    
     if (style == 'block'):
-        block.blockMode(varList, colors)
+        blockMode(baseWidth, baseHeight, songTitle, songArtist, width, height, image, fontPath)
     elif (style == "gradient"):
-        gradient.gradientMode(varList, colors)
-    elif (style == "video"):
-        video.videoMode(varList, colors)
-    else:
-        print("Style: " + str(style) + " is not supported please check the spelling of provided style.")
-        exit()
-    return songTitle
+        gradientMode(baseWidth, baseHeight, songTitle, songArtist, width, height, image, fontPath)
+    
+    
+    return
+
 
 
 

@@ -3,4 +3,3 @@ spotipy
 pillow
 numpy
 spotdl
-moviepy
