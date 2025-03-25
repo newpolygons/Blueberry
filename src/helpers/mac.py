@@ -7,13 +7,10 @@ from ast import literal_eval
 
 
 def applyWallpaperMac():
-    #magic to force mac wallpaper to refresh (not proud of this implementation come back some day)
-
     number = random.randint(1, 999999)
     imagePath = "src/helpers/.cache/finalImage.png"
     pathList = os.path.splitext(imagePath)
     path = pathList[0] + str(number)
-    
     with open("src/helpers/.cache/currentWallpaper.txt", "r") as f:
         currentWall = f.read()
         f.close()
@@ -23,16 +20,8 @@ def applyWallpaperMac():
                 os.remove(currentWall + ".png")
             except Exception as e:
                 print(e)
-                print("The file was likely empty if this is your first time running disreguard.")
             f.write(path)
             f.close()
-    try:
-        os.rename(imagePath, path + ".png")
-    except:
-        os.system('touch src/helpers/.cache/finalImage.png')
-        os.rename(imagePath, path + ".png")
-
-    subprocess.run(["./src/swift/changeWallpaper.swift", path + ".png"])
     
 def backupWallpaper():
     '''
