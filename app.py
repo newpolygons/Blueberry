@@ -1,6 +1,26 @@
+import os
 import argparse
 import platform
 from src import main
+
+def init():
+    #initialize ... sanity check
+    imPath = 'src/helpers/.cache/newCover.png'
+    curWal = 'src/helpers/.cache/currentWallpaper.txt'
+    if not os.path.isfile(imPath):
+        try:
+            from PIL import Image
+            img = Image.new('RGB', (512, 512), (255, 102, 102))
+            img.save(imPath)
+        except Exception as e:
+            print("No 'newCover.png' in .cache")
+            exit()
+    if not os.path.isfile(curWal):
+        try:
+            os.system('touch src/helpers/.cache/currentWallpaper.txt')
+        except:
+            print("Issue with 'currentWallpaper.txt in .cache'")
+            exit()
 
 def run():
     parser = argparse.ArgumentParser()
