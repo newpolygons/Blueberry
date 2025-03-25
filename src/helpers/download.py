@@ -1,28 +1,16 @@
-#functions for downloading current song
-import subprocess
-import os
+#functions for downloading spotify song when provided a link
+from subprocess import Popen, PIPE, CalledProcessError
 
+downloadDir =  "downloads/"
+formatType = "wav"   #{mp3,flac,ogg,opus,m4a,wav}
+bitrate = 'disable'  #{auto,disable,8k,16k,24k,32k,40k,48k,64k,80k,96k,112k,128k,160k,192k,224k,256k,320k}
 
-downloadDir = os.path.join('.', 'downloads')
-formatType = 'wav' # {mp3,flac,ogg,opus,m4a,wav}
-
-
-#downloads the song you are currently listening to. To be saved in /downloads dir.
+#downloads the song you are currently listening to. To be saved in 'downloads' dir.
 def downloadCurrentSong(link):
-    try:
-        #check again when not on vpn
-        print("Attempting to download: " + str(link) + ' to ' + str(downloadDir))
-        subprocess.check_output(['spotdl', link, '--output', downloadDir, '--format', formatType], stderr=subprocess.STDOUT)
-    except Exception as e:
-        print(e)
-    
+    cmd = ['spotdl', link, '--output', downloadDir, '--format', formatType,  '--bitrate', bitrate, ]
 
-if __name__ == '__main__':
-    '''
-    downloadDir = os.path.join('.', 'downloads')
-    link = ""
-    downloadCurrentSong(link)
-    '''
-    
-
-# https://open.spotify.com/track/1Es7AUAhQvapIcoh3qMKDL
+    with Popen(cmd, stdout=PIPE, bufsize=1, universal_newlines=True) as p:
+        for line in p.stdout:
+            print(line, end='') # process line here
+        if p.returncode != 0:
+            print(p.returncode, p.args)
