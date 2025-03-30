@@ -52,7 +52,7 @@ def run():
     elif args.clean:
         main.removeCache()
     elif args.restorewall:
-        print("This isnt implemented yet but backing up wallpapers is (!ONMACRN!)  !!! go to src/wallpaperBackup to find your original wallpaper :)")
+        print("This isnt implemented yet!")
     else:
         currentOS = platform.system()
         main.main(str(args.style), str(args.font), str(currentOS))

@@ -10,6 +10,12 @@ Currently Playing Spotify Song As Wallpaper for Gnome and MacOS
 
     FFMPEG
 
+    On Linux you will also need xrandr
+
+    Fedora: 'sudo dnf install xrandr'
+    Ubuntu: 'sudo apt-get install x11-xserver-utils'
+
+
 # Usage 
 
 In the root of the project.
@@ -20,9 +26,7 @@ In the root of the project.
 
     You can find more information about optional arguments in docs/CLI.MD
     
-    Display size on linux is not automatically found. The default is 1920x1080 and can be edited on line 15 of main.main()
-    Additionally on linux you will not see the wallpaper change if you have dark mode selected in your system settings.
-    Both of these will be changed to happen automatically shortly.
+    Backup your current wallpaper before running.
 
 # Images 
 
