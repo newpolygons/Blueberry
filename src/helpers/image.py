@@ -3,7 +3,6 @@ from . import color
 from src.style.gradient import gradientMode
 from src.style.block import blockMode
 
-
 def albumImage(style, songInformation, display, fontPath):
     try:
         songTitle = songInformation[1]
@@ -30,8 +29,7 @@ def albumImage(style, songInformation, display, fontPath):
         blockMode(baseWidth, baseHeight, songTitle, songArtist, width, height, image, fontPath)
     elif (style == "gradient"):
         gradientMode(baseWidth, baseHeight, songTitle, songArtist, width, height, image, fontPath)
-    
-    
+      
     return
 
 
