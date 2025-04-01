@@ -1,6 +1,35 @@
+import os
 import argparse
 import platform
 from src import main
+
+def init():
+    #initialize ... sanity check
+    imPath = 'src/helpers/.cache/newCover.png'
+    curWal = 'src/helpers/.cache/currentWallpaper.txt'
+    finIm = "src/helpers/.cache/finalImage.png"
+    if not os.path.isfile(imPath):
+        try:
+            from PIL import Image
+            img = Image.new('RGB', (512, 512), (255, 102, 102))
+            img.save(imPath)
+        except Exception as e:
+            print("No 'newCover.png' in .cache")
+            exit()
+    if not os.path.isfile(finIm):
+        try:
+            from PIL import Image
+            img = Image.new('RGB', (512, 512), (255, 102, 102))
+            img.save(finIm)
+        except Exception as e:
+            print("No 'finalImage.png' in .cache")
+            exit()
+    if not os.path.isfile(curWal):
+        try:
+            os.system('touch src/helpers/.cache/currentWallpaper.txt')
+        except:
+            print("Issue with 'currentWallpaper.txt in .cache'")
+            exit()
 
 def run():
     parser = argparse.ArgumentParser()
@@ -23,7 +52,7 @@ def run():
     elif args.clean:
         main.removeCache()
     elif args.restorewall:
-        print("This isnt implemented yet but backing up wallpapers is (!ONMACRN!)  !!! go to src/wallpaperBackup to find your original wallpaper :)")
+        print("This isnt implemented yet!")
     else:
         currentOS = platform.system()
         main.main(str(args.style), str(args.font), str(currentOS))
@@ -31,4 +60,5 @@ def run():
 
 
 if __name__ == '__main__':
+    init()
     run()

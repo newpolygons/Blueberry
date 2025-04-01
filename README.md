@@ -10,6 +10,12 @@ Currently Playing Spotify Song As Wallpaper for Gnome and MacOS
 
     FFMPEG
 
+    On Linux you will also need xrandr
+
+    Fedora: 'sudo dnf install xrandr'
+    Ubuntu: 'sudo apt-get install x11-xserver-utils'
+
+
 # Usage 
 
 In the root of the project.
@@ -19,6 +25,8 @@ In the root of the project.
     python3 app.py
 
     You can find more information about optional arguments in docs/CLI.MD
+    
+    Backup your current wallpaper before running.
 
 # Images 
 
