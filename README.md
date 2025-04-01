@@ -30,15 +30,16 @@ In the root of the project.
 
 # Images 
 
-![1](https://user-images.githubusercontent.com/30321729/145736816-33fa7ca4-7e9c-4299-9ea2-dbfe0acc78ab.png)
 
 
-![2](https://github.com/user-attachments/assets/f4383f0f-e6a3-48fa-bc66-bce2d57b4d6c)
+-- style gradient
 
-
-
+![greadient](https://github.com/user-attachments/assets/082022ec-2bdb-4ba3-914c-22513c95abd8)
 
 
 
 
+-- style block
+
+![block](https://github.com/user-attachments/assets/6d5909c7-545e-4754-bd56-2cc11711d8e3)
 
