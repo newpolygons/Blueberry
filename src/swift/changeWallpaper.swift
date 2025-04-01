@@ -1,5 +1,8 @@
 #!/usr/bin/env swift
 
+// File to change current wallpaper on macOS
+
+
 import Cocoa
 
 do {

@@ -37,9 +37,5 @@ This argument will download a spotify song, then exit the application.
 eg. --download 'https://spotify.com/track'
 
 
-# --clean
 
-This argument removes all files in the folder 'src/helpers/.cache', then exit the application.
-
-eg. --clean
 

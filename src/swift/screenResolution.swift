@@ -1,5 +1,9 @@
 #!/usr/bin/env swift
 
+
+// Function to get current resolution of the main display on macOS
+
+
 import Cocoa
 
 
