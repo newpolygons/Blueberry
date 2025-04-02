@@ -94,17 +94,7 @@ def fontSelector(font):
 
 def init():
     #initialize ... sanity check
-    imPath = 'src/helpers/.cache/newCover.png'
-    curWal = 'src/helpers/.cache/currentWallpaper.txt'
     finIm = "src/helpers/.cache/finalImage.png"
-    if not os.path.isfile(imPath):
-        try:
-            from PIL import Image
-            img = Image.new('RGB', (512, 512), (255, 102, 102))
-            img.save(imPath)
-        except Exception as e:
-            print("No 'newCover.png' in .cache")
-            exit()
     if not os.path.isfile(finIm):
         try:
             from PIL import Image
@@ -113,14 +103,5 @@ def init():
         except Exception as e:
             print("No 'finalImage.png' in .cache")
             exit()
-    if not os.path.isfile(curWal):
-        try:
-            os.system('touch src/helpers/.cache/currentWallpaper.txt')
-        except:
-            print("Issue with 'currentWallpaper.txt in .cache'")
-            exit()
 
 
-
-
-    

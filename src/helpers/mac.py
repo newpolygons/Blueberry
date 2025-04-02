@@ -1,28 +1,31 @@
 import os 
 import subprocess
-import random
-import shutil
-import time
+import random as r
 from ast import literal_eval
 
 
 def applyWallpaperMac():
-    number = random.randint(1, 999999)
     imagePath = "src/helpers/.cache/finalImage.png"
-    pathList = os.path.splitext(imagePath)
-    path = pathList[0] + str(number)
-    with open("src/helpers/.cache/currentWallpaper.txt", "r") as f:
-        currentWall = f.read()
-        f.close()
-    if currentWall != path:
-        with open("src/helpers/.cache/currentWallpaper.txt", "w") as f:
-            try:
-                os.remove(currentWall + ".png")
-            except Exception as e:
-                print(e)
-            f.write(path)
-            f.close()
     
+    #Force macOS to change wallpaper by appending a number to end of file name (safely)
+    pathList = os.path.splitext(imagePath)
+    path = (pathList[0] + str(r.randint(1,50))) + pathList[1]
+    
+    try:
+        os.rename(imagePath, path)
+        subprocess.run(["./src/swift/changeWallpaper.swift", path])
+        
+        # also implement cleanup of images without breaking
+        for i in os.listdir('src/helpers/.cache/'):
+            if i.endswith('.png') and ('src/helpers/.cache/' + i) != path:
+                os.remove('src/helpers/.cache/' + i)
+    
+    except Exception as e:
+        print(e)
+        print('Unable to create image and apply wallpaper :( ')
+        print('Check src/helpers/.cache and make sure there is a finalImage.png there.')
+
+
 def backupWallpaper():
     '''
     cmd = """
