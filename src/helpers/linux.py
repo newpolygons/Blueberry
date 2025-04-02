@@ -5,7 +5,7 @@ import subprocess
 
 def applyWallpaperLinux(colorMode):
     colorMode = colorMode.strip("' ")
-    
+    cacheDir = 'src/helpers/.cache/'
     if colorMode == 'default':
         os.system("gsettings set org.gnome.desktop.background picture-uri file://" + os.getcwd() + "/src/helpers/.cache/finalImage.png")
     elif colorMode == 'prefer-dark':
@@ -15,10 +15,12 @@ def applyWallpaperLinux(colorMode):
         print('Cannot set picture uri ' + str(colorMode))
 
     # also implement cleanup of images without breaking
-    for i in os.listdir('src/helpers/.cache/'):
-        if i.endswith('.png') and != "/src/helpers/.cache/finalImage.png" :
+    for i in os.listdir(cacheDir):
+        if i.endswith('.png') and cacheDir+i != "src/helpers/.cache/finalImage.png":
+            print(i)
+            print(cacheDir+i)
             try:
-                os.remove('src/helpers/.cache/' + i)
+                os.remove(cacheDir+i)
             except Exception as e:
                 print(e)
                 return
