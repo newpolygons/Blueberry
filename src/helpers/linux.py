@@ -13,7 +13,16 @@ def applyWallpaperLinux(colorMode):
     else:
         print("Issues in the applyWallpaperLinux() function report the following string as an issue on github.")
         print('Cannot set picture uri ' + str(colorMode))
-    
+
+    # also implement cleanup of images without breaking
+    for i in os.listdir('src/helpers/.cache/'):
+        if i.endswith('.png') and != "/src/helpers/.cache/finalImage.png" :
+            try:
+                os.remove('src/helpers/.cache/' + i)
+            except Exception as e:
+                print(e)
+                return
+
 
 # This function will collect  display resolution and light/dark mode prefernece
 def getScreenResolution():
@@ -38,9 +47,6 @@ def getScreenResolution():
         print("Setting display res to 1920x1080! You can modify this behavior in src/helpers/linux.py")
         screenRes = ['1920', '1080']
         print(str(e))
-    
-    
-    
 
     return colorMode, screenRes
 

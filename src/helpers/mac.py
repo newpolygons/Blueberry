@@ -22,8 +22,7 @@ def applyWallpaperMac():
     
     except Exception as e:
         print(e)
-        print('Unable to create image and apply wallpaper :( ')
-        print('Check src/helpers/.cache and make sure there is a finalImage.png there.')
+        return
 
 
 def backupWallpaper():
