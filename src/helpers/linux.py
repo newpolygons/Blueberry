@@ -5,7 +5,6 @@ import subprocess
 
 def applyWallpaperLinux(colorMode):
     colorMode = colorMode.strip("' ")
-    cacheDir = 'src/helpers/.cache/'
     if colorMode == 'default':
         os.system("gsettings set org.gnome.desktop.background picture-uri file://" + os.getcwd() + "/src/helpers/.cache/finalImage.png")
     elif colorMode == 'prefer-dark':
@@ -13,18 +12,6 @@ def applyWallpaperLinux(colorMode):
     else:
         print("Issues in the applyWallpaperLinux() function report the following string as an issue on github.")
         print('Cannot set picture uri ' + str(colorMode))
-
-    # also implement cleanup of images without breaking
-    for i in os.listdir(cacheDir):
-        if i.endswith('.png') and cacheDir+i != "src/helpers/.cache/finalImage.png":
-            print(i)
-            print(cacheDir+i)
-            try:
-                os.remove(cacheDir+i)
-            except Exception as e:
-                print(e)
-                return
-
 
 # This function will collect  display resolution and light/dark mode prefernece
 def getScreenResolution():
