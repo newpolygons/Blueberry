@@ -29,7 +29,6 @@ def albumImage(style, songInformation, display, fontPath):
         blockMode(baseWidth, baseHeight, songTitle, songArtist, width, height, image, fontPath)
     elif (style == "gradient"):
         gradientMode(baseWidth, baseHeight, songTitle, songArtist, width, height, image, fontPath)
-      
     return
 
 
