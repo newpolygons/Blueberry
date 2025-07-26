@@ -29,7 +29,9 @@ def getScreenResolution():
     try:
 
         cmdScreenRes = os.popen("xrandr | grep '*' | awk '{ print $1 }'").read()
-        screenRes = cmdScreenRes.split('x')
+        screenRes = cmdScreenRes.split('\n')
+        screenRes = screenRes[0]
+        screenRes = screenRes.split('x')
         screenRes = [number.strip() for number in screenRes]
     except Exception as e:
         print("There was an issue getting the current diplay resolution!")
