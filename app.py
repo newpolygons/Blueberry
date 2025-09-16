@@ -10,6 +10,8 @@ def run():
                         help="Choose the background style 'gradient' or 'block', default is gradient.")
     parser.add_argument("--font", default='Rubik',
                         help="Choose the font 'Rubik', 'Signature' or 'CreamCake', default is Rubik. ")
+    parser.add_argument("--video", action='store_true',
+                        help="Wallpaper will be a video, other stylizations will be ignored.. for now.")
     parser.add_argument("--restorewall", action='store_true', 
                         help="Restore backed up wallpaper.")
     parser.add_argument("--download", default='', 
@@ -22,6 +24,9 @@ def run():
         download.downloadCurrentSong(str(args.download))
     elif args.restorewall:
         print("This isnt implemented yet!")
+    elif args.video:
+        #implement vid functionality.
+        pass
     else:
         currentOS = platform.system()
         m.main(str(args.style), str(args.font), str(currentOS))

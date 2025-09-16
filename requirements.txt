@@ -3,3 +3,4 @@ spotipy
 pillow
 numpy
 spotdl
+requests
