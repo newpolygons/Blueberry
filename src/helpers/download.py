@@ -1,5 +1,5 @@
 #functions for downloading spotify song when provided a link
-from subprocess import Popen, PIPE, CalledProcessError
+from subprocess import Popen, PIPE
 
 downloadDir =  "downloads/"
 formatType = "wav"   #{mp3,flac,ogg,opus,m4a,wav}

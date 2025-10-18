@@ -18,6 +18,9 @@ def gradientMode(baseWidth, baseHeight, songTitle, songArtist, width, height, im
     gradient.paste(image, ((int(gradient.width/2) - int(image.width / 2)), int((gradient.height/2) - int(image.height / 2))), image)
     gradient.save("src/helpers/.cache/finalImage.png")
 
+    # IMPLEMENT IMAGE NEVER CLOSED!!!!!
+    image.close()
+
 
 
 def get_gradient_2d(start, stop, width, height, is_horizontal):
