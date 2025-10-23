@@ -1,6 +1,6 @@
-colorgram.py
+colorgram.py==1.2.0
+pillow==12.0.0
+numpy==2.3.4
 spotipy
-pillow
-numpy
 spotdl
 requests

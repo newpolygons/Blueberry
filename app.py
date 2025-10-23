@@ -24,6 +24,7 @@ def run():
         download.downloadCurrentSong(str(args.download))
     elif args.restorewall:
         print("This isnt implemented yet!")
+        exit()
     elif args.video:
         #implement vid functionality.
         pass

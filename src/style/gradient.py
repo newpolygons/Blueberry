@@ -5,21 +5,19 @@ from src.helpers.color import getColors
 
 def gradientMode(baseWidth, baseHeight, songTitle, songArtist, width, height, image, fontPath):
     colors = getColors()
-    firstColor = colors[0].rgb
-    secondColor = colors[1].rgb
+    firstColor = colors[0]
+    secondColor = colors[1]
     array = get_gradient_3d(baseWidth, baseHeight, firstColor, secondColor, (False, False, False))
     Image.fromarray(np.uint8(array)).save("src/helpers/.cache/gradient.png", quality=100)
 
     gradient = Image.open("src/helpers/.cache/gradient.png")
     titleArtist = ImageDraw.Draw(gradient)
     myFont = ImageFont.truetype(fontPath, 60)#40)
-    titleArtist.text((50,50), (songTitle + "\n" + songArtist), font = myFont, fill = (colors[1].rgb))
+    titleArtist.text((50,50), (songTitle + "\n" + songArtist), font = myFont, fill = (colors[1]))
     gradient.save('src/helpers/.cache/gradient.png')
     gradient.paste(image, ((int(gradient.width/2) - int(image.width / 2)), int((gradient.height/2) - int(image.height / 2))), image)
     gradient.save("src/helpers/.cache/finalImage.png")
-
-    # IMPLEMENT IMAGE NEVER CLOSED!!!!!
-    image.close()
+    
 
 
 

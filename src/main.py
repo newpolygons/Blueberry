@@ -17,6 +17,7 @@ def main(style, font, currentOS):
         exit()
     
     fontPath = fontSelector(font)
+    styleSelected = styleSelector(style)
     spotify_token = authenticate.spotify_authenticate()
     oldSong = ''
     
@@ -27,7 +28,7 @@ def main(style, font, currentOS):
             songInformation = get_song_id(spotify_token)
         if songInformation[1] != oldSong:
             oldSong = songInformation[1]
-            image.albumImage(style, songInformation, display, fontPath) 
+            image.albumImage(styleSelected, songInformation, display, fontPath) 
             if (currentOS == 'Linux'):
                 linux.applyWallpaperLinux(colorMode)
                 t.sleep(1)
@@ -41,7 +42,13 @@ def main(style, font, currentOS):
 
 def get_song_id(spotify_token):
     spotify_token = spotify_token
-    songInfo = spotify_token.current_user_playing_track()
+    try:
+        songInfo = spotify_token.current_user_playing_track()
+    except:
+        spotify_token = authenticate.spotify_authenticate()
+        newToken = authenticate.refreshToken(spotify_token)
+        spotify_token = newToken
+        songInfo = spotify_token.current_user_playing_track()
     
     try:
         songContent = songInfo
@@ -87,9 +94,18 @@ def fontSelector(font):
         case 'creamcake':
             return 'src/fonts/CreamCake.otf'
         case _:
-            "Font provided: " + str(font) + " is not currently supported defaulting to Rubik"
+            print("Font provided: " + str(font) + " is not currently supported defaulting to Rubik!")
             return 'src/fonts/Rubik.ttf'
 
+def styleSelector(style):
+    match style.lower():
+        case 'block':
+            return 'block'
+        case 'gradient':
+            return 'gradient'
+        case _:
+            print("Style provided: " + str(style) + " is not currently supported defaulting to gradient!")
+            return 'gradient'
 
 
 def init():
@@ -100,6 +116,7 @@ def init():
             from PIL import Image
             img = Image.new('RGB', (512, 512), (255, 102, 102))
             img.save(finIm)
+            img.close()
         except Exception as e:
             print("No 'finalImage.png' in .cache")
             exit()
