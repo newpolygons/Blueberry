@@ -1,7 +1,6 @@
 #Setup Background Colors
 import colorgram
 import math
-from itertools import combinations
 
 def getColors():
     colors = colorgram.extract('src/helpers/.cache/newCover.png', 15)
