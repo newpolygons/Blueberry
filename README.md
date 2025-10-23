@@ -28,6 +28,10 @@ In the root of the project.
     
     Backup your current wallpaper before running.
 
+# New
+
+New color function for improved colors!
+
 # Images 
 
 
