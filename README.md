@@ -20,13 +20,15 @@ Currently Playing Spotify Song As Wallpaper for Gnome and MacOS
 
 In the root of the project.
 
+    BACKUP YOUR CURRENT WALLPAPER BEFORE RUNNING! if you care about it being lost.
+
     python3 -m venv env && source env/bin/activate
     pip3 install -r requirements.txt
     python3 app.py
 
     You can find more information about optional arguments in docs/CLI.MD
     
-    Backup your current wallpaper before running.
+    
 
 # New
 
