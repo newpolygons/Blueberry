@@ -4,7 +4,9 @@ import time as t
 from src.helpers import image, download, authenticate
 
 
-def main(style, font, currentOS):
+def main(style, font, preview, currentOS):
+    if preview:
+        from PIL import Image
     if (currentOS == "Darwin"):
         from src.helpers import mac
         display = mac.getScreenResolution()
@@ -28,7 +30,17 @@ def main(style, font, currentOS):
             songInformation = get_song_id(spotify_token)
         if songInformation[1] != oldSong:
             oldSong = songInformation[1]
-            image.albumImage(styleSelected, songInformation, display, fontPath) 
+            image.albumImage(styleSelected, songInformation, display, fontPath)
+            
+            if preview:
+                try:
+                    previewImg.close()
+                except Exception as e:
+                    print(e)
+                    pass
+                previewImg = Image.open("src/helpers/.cache/finalImage.png")
+                previewImg.show()
+
             if (currentOS == 'Linux'):
                 linux.applyWallpaperLinux(colorMode)
                 t.sleep(1)
@@ -36,6 +48,7 @@ def main(style, font, currentOS):
                 mac.applyWallpaperMac()
                 t.sleep(1) 
             print("Current Song: " + songInformation[1] + " - "  + songInformation[2])
+        
         else:
             t.sleep(5)
     

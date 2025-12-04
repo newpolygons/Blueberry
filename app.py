@@ -16,6 +16,8 @@ def run():
                         help="Restore backed up wallpaper.")
     parser.add_argument("--download", default='', 
                         help="Download a spotify song, please provide the link in quotes eg 'https://spotify.com' ")                     
+    parser.add_argument("--preview", action='store_true', 
+                        help="Devolper function, opens image in image viewer while running.")
     args = parser.parse_args()
 
     
@@ -30,7 +32,7 @@ def run():
         pass
     else:
         currentOS = platform.system()
-        m.main(str(args.style), str(args.font), str(currentOS))
+        m.main(str(args.style), str(args.font), args.preview, str(currentOS))
 
 
 
