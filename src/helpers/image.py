@@ -10,26 +10,22 @@ def albumImage(style, songInformation, display, fontPath):
     except:
         print("error occured in album image function")
         return
-     # Setup Album Image
     width = int(int(display[0]) / 5)
     height = int(int(display[1]) / 2)
-    
     baseWidth = int(display[0])
     baseHeight = int(display[1])
     image = Image.open("src/helpers/.cache/newCover.png")
     wpercent = (width/float(image.size[0]))
     hsize = int((float(image.size[1])*float(wpercent)))
     image = image.resize((width,hsize), Image.LANCZOS)
-    #Adding rounded corners and drop shadow to images
-    
     image = add_corners(image, 20)
     image.save('src/helpers/.cache/newCover.png')
+    
 
     if (style == 'block'):
         blockMode(baseWidth, baseHeight, songTitle, songArtist, width, height, image, fontPath)
     elif (style == "gradient"):
         gradientMode(baseWidth, baseHeight, songTitle, songArtist, width, height, image, fontPath)
-    return
 
 
 
