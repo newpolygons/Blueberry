@@ -10,3 +10,10 @@ downloads/
 src/helpers/.cache/*.png
 **.spotcache
 src/test.py
+.zig-cache/
+zig-out/
+/release/
+/debug/
+/build/
+/build-*/
+/docgen_tmp/
