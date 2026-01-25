@@ -11,6 +11,6 @@ def downloadCurrentSong(link):
 
     with Popen(cmd, stdout=PIPE, bufsize=1, universal_newlines=True) as p:
         for line in p.stdout:
-            print(line, end='') # process line here
+            print(line, end='') 
         if p.returncode != 0:
             print(p.returncode, p.args)
