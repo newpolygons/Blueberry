@@ -30,9 +30,7 @@ In the root of the project.
     
     
 
-# New
 
-New color function for improved colors!
 
 # Images 
 
