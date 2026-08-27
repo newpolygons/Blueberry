@@ -1,5 +1,4 @@
 from PIL import Image, ImageDraw
-from . import color
 from src.style.gradient import gradientMode
 from src.style.block import blockMode
 
@@ -16,7 +15,7 @@ def albumImage(style, songInformation, display, fontPath):
     baseHeight = int(display[1])
     image = Image.open("src/helpers/.cache/newCover.png")
     wpercent = (width/float(image.size[0]))
-    hsize = int((float(image.size[1])*float(wpercent)))
+    hsize = int(float(image.size[1])*float(wpercent))
     image = image.resize((width,hsize), Image.LANCZOS)
     image = add_corners(image, 20)
     image.save('src/helpers/.cache/newCover.png')

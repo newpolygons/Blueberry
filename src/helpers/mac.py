@@ -21,7 +21,7 @@ def applyWallpaperMac():
                 os.remove('src/helpers/.cache/' + i)
     
     except Exception as e:
-        print(e)
+        print("Error has occured" + str(e))
         return
 
 
@@ -46,7 +46,7 @@ def backupWallpaper():
         print("Exiting application to prevent loss of original wallpaper.")
         exit()
     '''
-    pass
+    return
 
 
 def getScreenResolution():

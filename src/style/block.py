@@ -16,7 +16,7 @@ def blockMode(baseWidth, baseHeight, songTitle, songArtist, width, height, image
     background.paste(colorImageOne, (0, 0))
     background.paste(colorImageTwo, (0, colorImageOne.height))
     background.save('src/helpers/.cache/background.png')
-    finalImage = Image.new('RGB', (width, height))
     background.paste(image, ((int(background.width/2) - int(image.width / 2)), int((background.height/2) - int(image.height / 2))), image)
     background.save("src/helpers/.cache/finalImage.png")
+    return
     

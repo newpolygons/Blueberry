@@ -30,12 +30,6 @@ This argument will attempt to automatically set your wallpaper to the most recen
 eg. --restorewall
 
 
-# --download 
-
-This argument will download a spotify song, then exit the application.
-
-eg. --download 'https://spotify.com/track'
-
 
 
 

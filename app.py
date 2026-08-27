@@ -1,4 +1,4 @@
-import os
+import sys
 import argparse
 import platform
 from src import main as m
@@ -14,17 +14,12 @@ def run():
                         help="Wallpaper will be a video, other stylizations will be ignored.. for now.")
     parser.add_argument("--restorewall", action='store_true', 
                         help="Restore backed up wallpaper.")
-    parser.add_argument("--download", default='', 
-                        help="Download a spotify song, please provide the link in quotes eg 'https://spotify.com' ")                     
     args = parser.parse_args()
 
     
-    if args.download != '':
-        from src.helpers import download
-        download.downloadCurrentSong(str(args.download))
-    elif args.restorewall:
+    if args.restorewall:
         print("This isnt implemented yet!")
-        exit()
+        sys.exit(0)
     elif args.video:
         #implement vid functionality.
         pass

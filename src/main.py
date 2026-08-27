@@ -1,7 +1,8 @@
 import requests
-import os 
+import os
+import sys
 import time as t
-from src.helpers import image, download, authenticate
+from src.helpers import image, authenticate
 
 
 def main(style, font, currentOS):
@@ -14,7 +15,7 @@ def main(style, font, currentOS):
         colorMode, display = linux.getScreenResolution()
     else:
         print("Your Operating System:("+ str(currentOS)+") is currently unsupported!")
-        exit()
+        sys.exit(1)
     
     fontPath = fontSelector(font)
     styleSelected = styleSelector(style)
@@ -118,7 +119,7 @@ def init():
             img.save(finIm)
             img.close()
         except Exception as e:
-            print("No 'finalImage.png' in .cache")
-            exit()
+            print("No 'finalImage.png' in .cache" + str(e))
+            sys.exit(1)
 
 
